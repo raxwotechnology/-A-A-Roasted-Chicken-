@@ -5,6 +5,22 @@ import { BrowserRouter } from "react-router-dom";
 // import { AuthProvider } from "./components/ProtectedRoute";
 import { AuthProvider } from "./context/auth-context";
 import App from "./App";
+import axios from "axios";
+
+// Dynamically rewrite API URLs if REACT_APP_API_URL environment variable is provided
+const apiUrl = process.env.REACT_APP_API_URL;
+if (apiUrl) {
+  const cleanApiUrl = apiUrl.replace(/\/$/, "");
+  axios.interceptors.request.use(
+    (config) => {
+      if (config.url && config.url.includes("gasmachineserestaurantapp.onrender.com")) {
+        config.url = config.url.replace("https://gasmachineserestaurantapp.onrender.com", cleanApiUrl);
+      }
+      return config;
+    },
+    (error) => Promise.reject(error)
+  );
+}
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
