@@ -9,22 +9,24 @@ exports.getAdminSummary = async (req, res) => {
   const { startDate, endDate } = req.query;
 
   try {
-    let query = {};
+    // Build date filter properly
+    let orderDateFilter = {};
+    let dateFilter = {};
     if (startDate && endDate) {
-      query = {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate)
-      };
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      orderDateFilter = { createdAt: { $gte: start, $lte: end } };
+      dateFilter = { date: { $gte: start, $lte: end } };
     }
 
-    // Fetch all data sources — ✅ ADDED OtherIncome & OtherExpense
+    // Fetch all data sources
     const [orders, expenses, bills, salaries, otherIncomes, otherExpenses] = await Promise.all([
-      Order.find({ createdAt: query }),
-      Expense.find({ date: query }).select("amount"),
-      KitchenBill.find({ date: query }).select("amount"),
-      Salary.find({ date: query }).select("total"),
-      OtherIncome.find({ date: query }).select("amount"),
-      OtherExpense.find({ date: query }).select("amount")
+      Order.find(orderDateFilter),
+      Expense.find(dateFilter).select("amount"),
+      KitchenBill.find(dateFilter).select("amount"),
+      Salary.find(dateFilter).select("total"),
+      OtherIncome.find(dateFilter).select("amount"),
+      OtherExpense.find(dateFilter).select("amount")
     ]);
 
     // ✅ Calculate totals
