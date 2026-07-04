@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import API_BASE_URL from "../api.js";
 
 const CashierSummary = () => {
   // State for UI
@@ -271,7 +272,7 @@ const CashierSummary = () => {
       };
 
       const res = await axios.post(
-        "https://gasmachineserestaurantapp.onrender.com/api/auth/cashier/shift-summary/submitshift",
+        `${API_BASE_URL}/api/auth/cashier/shift-summary/submitshift`,
         payload,
         {
           headers: { Authorization: `Bearer ${token}` }

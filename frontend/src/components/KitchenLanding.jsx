@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import "./KitchenLanding.css";
+import API_BASE_URL from "../api.js";
 
 const KitchenLanding = () => {
   const [orders, setOrders] = useState([]);
@@ -37,7 +38,7 @@ const KitchenLanding = () => {
     if (initial) setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/orders?limit=200", { // Large limit for ALL live orders
+      const res = await axios.get(`${API_BASE_URL}/api/auth/orders?limit=200`, { // Large limit for ALL live orders
         headers: { Authorization: `Bearer ${token}` },
       });
       // Handle both cases (plain array or paginated object)
@@ -73,7 +74,7 @@ const KitchenLanding = () => {
       );
 
       await axios.post(
-        "https://gasmachineserestaurantapp.onrender.com/api/auth/notifications/send",
+        `${API_BASE_URL}/api/auth/notifications/send`,
         {
           userId: id,
           message: `Order #${id} is ready for pickup.`,
@@ -111,7 +112,7 @@ const KitchenLanding = () => {
         );
 
         await axios.post(
-          "https://gasmachineserestaurantapp.onrender.com/api/auth/notifications/send",
+          `${API_BASE_URL}/api/auth/notifications/send`,
           {
             userId: id,
             message: `Order #${id} is ready for pickup.`,

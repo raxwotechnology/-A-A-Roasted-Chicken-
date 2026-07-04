@@ -12,6 +12,7 @@ import {
 } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
 import { Bar } from 'react-chartjs-2';
+import API_BASE_URL from "../api.js";
 
 ChartJS.register(
   ArcElement,
@@ -95,7 +96,7 @@ const AdminDashboard = () => {
           break;
       }
 
-      const res = await axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/admin/summary", {
+      const res = await axios.get(`${API_BASE_URL}/api/auth/admin/summary`, {
         headers: { Authorization: `Bearer ${token}` },
         params: payload
       });

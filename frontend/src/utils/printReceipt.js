@@ -1,6 +1,7 @@
 // src/utils/printReceipt.js
 import { toast } from "react-toastify";
 import axios from "axios";
+import API_BASE_URL from "../api.js";
 
 /**
  * Prints the given receiptHTML to all printers saved in the backend.
@@ -25,7 +26,7 @@ export const printReceiptToBoth = async (receiptHTML) => {
   let savedPrinters = [];
   try {
     toast.info("📥 Loading saved printers...");
-    const res = await axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/printers", {
+    const res = await axios.get(`${API_BASE_URL}/api/auth/printers`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     savedPrinters = res.data;

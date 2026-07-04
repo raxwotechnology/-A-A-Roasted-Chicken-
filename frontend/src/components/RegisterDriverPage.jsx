@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import API_BASE_URL from "../api.js";
 
 const RegisterDriverPage = () => {
   const [formData, setFormData] = useState({
@@ -33,7 +34,7 @@ const RegisterDriverPage = () => {
   const fetchDrivers = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/drivers", {
+      const res = await axios.get(`${API_BASE_URL}/api/auth/drivers`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setDrivers(res.data);
@@ -54,7 +55,7 @@ const RegisterDriverPage = () => {
 
 
       const token = localStorage.getItem("token");
-      const res = await axios.post("https://gasmachineserestaurantapp.onrender.com/api/auth/drivers", formData, {
+      const res = await axios.post(`${API_BASE_URL}/api/auth/drivers`, formData, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`

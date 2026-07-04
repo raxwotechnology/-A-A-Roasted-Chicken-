@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import API_BASE_URL from "../api.js";
 
 const useNotifications = () => {
   const [notifications, setNotifications] = useState([]);
@@ -10,7 +11,7 @@ const useNotifications = () => {
   const fetchNotifications = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/notifications", {
+      const res = await axios.get(`${API_BASE_URL}/api/auth/notifications`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -35,7 +36,7 @@ const useNotifications = () => {
       const role = localStorage.getItem("userRole") || "cashier";
 
       await axios.post(
-        "https://gasmachineserestaurantapp.onrender.com/api/auth/notifications/send",
+        `${API_BASE_URL}/api/auth/notifications/send`,
         {
           userId,
           role,
@@ -61,7 +62,7 @@ const useNotifications = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        "https://gasmachineserestaurantapp.onrender.com/api/auth/notifications/mark-read",
+        `${API_BASE_URL}/api/auth/notifications/mark-read`,
         { notificationId: notifId },
         {
           headers: { Authorization: `Bearer ${token}` }
@@ -82,7 +83,7 @@ const useNotifications = () => {
       const role = localStorage.getItem("userRole") || "cashier";
 
       await axios.post(
-        "https://gasmachineserestaurantapp.onrender.com/api/auth/notifications/mark-all-read",
+        `${API_BASE_URL}/api/auth/notifications/mark-all-read`,
         { role },
         {
           headers: { Authorization: `Bearer ${token}` }

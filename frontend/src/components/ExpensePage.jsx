@@ -5,6 +5,7 @@ import CreatableSelect from 'react-select/creatable';
 import makeAnimated from 'react-select/animated';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import API_BASE_URL from "../api.js";
 
 const ExpensePage = () => {
   const [suppliers, setSuppliers] = useState([]);
@@ -111,7 +112,7 @@ const ExpensePage = () => {
         currentQty: 0
       };
 
-      const res = await axios.post("https://gasmachineserestaurantapp.onrender.com/api/auth/menu", payload, {
+      const res = await axios.post(`${API_BASE_URL}/api/auth/menu`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -193,7 +194,7 @@ const ExpensePage = () => {
   const fetchMenus = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/menus", {
+      const res = await axios.get(`${API_BASE_URL}/api/auth/menus`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMenus(res.data);
@@ -205,7 +206,7 @@ const ExpensePage = () => {
   const fetchSuppliers = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/suppliers", {
+      const res = await axios.get(`${API_BASE_URL}/api/auth/suppliers`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setSuppliers(res.data);
@@ -217,7 +218,7 @@ const ExpensePage = () => {
   const fetchExpenses = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/expenses", {
+      const res = await axios.get(`${API_BASE_URL}/api/auth/expenses`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       console.log("Fetched expenses:", res.data);
@@ -266,7 +267,7 @@ const ExpensePage = () => {
       const token = localStorage.getItem("token");
       const url = editingId
         ? `https://gasmachineserestaurantapp.onrender.com/api/auth/expense/${editingId}`
-        : "https://gasmachineserestaurantapp.onrender.com/api/auth/expense/add";
+        : `${API_BASE_URL}/api/auth/expense/add`;
 
       const method = editingId ? "put" : "post";
 

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import API_BASE_URL from "../api.js";
 
 const OtherIncome = () => {
   const [incomes, setIncomes] = useState([]);
@@ -27,7 +28,7 @@ const OtherIncome = () => {
     const token = localStorage.getItem("token");
 
     try {
-      const res = await axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/income/other", {
+      const res = await axios.get(`${API_BASE_URL}/api/auth/income/other`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -56,7 +57,7 @@ const OtherIncome = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.post(
-        "https://gasmachineserestaurantapp.onrender.com/api/auth/income/other",
+        `${API_BASE_URL}/api/auth/income/other`,
         newIncome,
         {
           headers: {

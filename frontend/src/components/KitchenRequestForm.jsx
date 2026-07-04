@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import API_BASE_URL from "../api.js";
 
 const KitchenRequestForm = () => {
   const [formData, setFormData] = useState({
@@ -18,7 +19,7 @@ const KitchenRequestForm = () => {
       try {
         const token = localStorage.getItem("token");
         const res = await axios.get(
-          "https://gasmachineserestaurantapp.onrender.com/api/auth/kitchen/my-requests",
+          `${API_BASE_URL}/api/auth/kitchen/my-requests`,
           {
             headers: { Authorization: `Bearer ${token}` }
           }
@@ -48,7 +49,7 @@ const KitchenRequestForm = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.post(
-        "https://gasmachineserestaurantapp.onrender.com/api/auth/kitchen/request",
+        `${API_BASE_URL}/api/auth/kitchen/request`,
         formData,
         {
           headers: { Authorization: `Bearer ${token}` }

@@ -10,6 +10,7 @@ import makeAnimated from 'react-select/animated';
 import Select from 'react-select';
 import { createFilter } from 'react-select';
 import CreatableSelect from 'react-select/creatable';
+import API_BASE_URL from "../api.js";
 
 const CashierLanding = () => {
   const [menus, setMenus] = useState([]);
@@ -74,7 +75,7 @@ const CashierLanding = () => {
     const timer = setTimeout(async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/customer", {
+        const res = await axios.get(`${API_BASE_URL}/api/auth/customer`, {
           params: { phone: customer.phone },
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -96,7 +97,7 @@ const CashierLanding = () => {
       const timer = setTimeout(async () => {
         try {
           const token = localStorage.getItem("token");
-          const res = await axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/customer", {
+          const res = await axios.get(`${API_BASE_URL}/api/auth/customer`, {
             params: { phone: customer.phone },
             headers: { Authorization: `Bearer ${token}` }
           });
@@ -114,7 +115,7 @@ const CashierLanding = () => {
   const fetchWaiters = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/employees", {
+      const res = await axios.get(`${API_BASE_URL}/api/auth/employees`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -170,7 +171,7 @@ const CashierLanding = () => {
       try {
         const token = localStorage.getItem("token");
         const res = await axios.get(
-          "https://gasmachineserestaurantapp.onrender.com/api/auth/customers-search",
+          `${API_BASE_URL}/api/auth/customers-search`,
           {
             params: { q: digits },
             headers: { Authorization: `Bearer ${token}` }
@@ -237,7 +238,7 @@ const CashierLanding = () => {
   const fetchMenus = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/menus", {
+      const res = await axios.get(`${API_BASE_URL}/api/auth/menus`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMenus(res.data);
@@ -264,7 +265,7 @@ const CashierLanding = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.get(
-        "https://gasmachineserestaurantapp.onrender.com/api/auth/customers-search",
+        `${API_BASE_URL}/api/auth/customers-search`,
         {
           params: { q: inputValue },
           headers: { Authorization: `Bearer ${token}` }
@@ -286,7 +287,7 @@ const CashierLanding = () => {
   const fetchOrdersAndComputePopularity = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/orders?limit=500", {
+      const res = await axios.get(`${API_BASE_URL}/api/auth/orders?limit=500`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -316,7 +317,7 @@ const CashierLanding = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.get(
-        "https://gasmachineserestaurantapp.onrender.com/api/auth/admin/service-charge",
+        `${API_BASE_URL}/api/auth/admin/service-charge`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -338,7 +339,7 @@ const CashierLanding = () => {
   // const fetchDeliveryCharge = async () => {
   //   try {
   //     const token = localStorage.getItem("token");
-  //     const res = await axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/admin/delivery-charge", {
+  //     const res = await axios.get(`${API_BASE_URL}/api/auth/admin/delivery-charge`, {
   //       headers: { Authorization: `Bearer ${token}` }
   //     });
   //     setDeliveryChargeSettings(res.data);
@@ -350,7 +351,7 @@ const CashierLanding = () => {
   const fetchDeliveryPlaces = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/delivery-charges", { // ✅ updated endpoint
+      const res = await axios.get(`${API_BASE_URL}/api/auth/delivery-charges`, { // ✅ updated endpoint
         headers: { Authorization: `Bearer ${token}` }
       });
       setDeliveryPlaces(res.data); // ✅ store array of places
@@ -590,7 +591,7 @@ const CashierLanding = () => {
       };
 
       const res = await axios.post(
-        "https://gasmachineserestaurantapp.onrender.com/api/auth/order",
+        `${API_BASE_URL}/api/auth/order`,
         payload,
         {
           headers: { Authorization: `Bearer ${token}` }
@@ -963,7 +964,7 @@ const CashierLanding = () => {
                         try {
                           const token = localStorage.getItem("token");
                           const res = await axios.post(
-                            "https://gasmachineserestaurantapp.onrender.com/api/auth/delivery-charges",
+                            `${API_BASE_URL}/api/auth/delivery-charges`,
                             { placeName: placeName.trim(), charge },
                             { headers: { Authorization: `Bearer ${token}` } }
                           );

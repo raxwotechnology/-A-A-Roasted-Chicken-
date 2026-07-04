@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
+import API_BASE_URL from "../api.js";
 
 const AttendanceDashboard = () => {
   const [summary, setSummary] = useState([]);
@@ -18,7 +19,7 @@ const AttendanceDashboard = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.get(
-        "https://gasmachineserestaurantapp.onrender.com/api/auth/admin/attendance/monthly-summary",
+        `${API_BASE_URL}/api/auth/admin/attendance/monthly-summary`,
         {
           params: { month, year }, // Ensure these are numbers like 7 and 2025
           headers: { Authorization: `Bearer ${token}` }

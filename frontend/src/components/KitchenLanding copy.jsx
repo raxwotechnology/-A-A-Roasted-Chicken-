@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import "./KitchenLanding.css";
+import API_BASE_URL from "../api.js";
 
 const KitchenLanding = () => {
   const [orders, setOrders] = useState([]);
@@ -42,7 +43,7 @@ const KitchenLanding = () => {
     const fetchOrders = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/orders", {
+        const res = await axios.get(`${API_BASE_URL}/api/auth/orders`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setOrders(res.data);
@@ -78,7 +79,7 @@ const KitchenLanding = () => {
       );
 
       await axios.post(
-        "https://gasmachineserestaurantapp.onrender.com/api/auth/notifications/send",
+        `${API_BASE_URL}/api/auth/notifications/send`,
         {
           userId: id,
           message: `Order #${id} is ready for pickup.`,

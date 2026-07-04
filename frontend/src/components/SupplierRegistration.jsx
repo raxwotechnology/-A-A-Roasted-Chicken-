@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
+import API_BASE_URL from "../api.js";
 
 const SupplierRegistration = () => {
   const [suppliers, setSuppliers] = useState([]);
@@ -22,7 +23,7 @@ const SupplierRegistration = () => {
   const fetchSuppliers = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/suppliers", {
+      const res = await axios.get(`${API_BASE_URL}/api/auth/suppliers`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setSuppliers(res.data);
@@ -45,7 +46,7 @@ const SupplierRegistration = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.post(
-        "https://gasmachineserestaurantapp.onrender.com/api/auth/supplier/register",
+        `${API_BASE_URL}/api/auth/supplier/register`,
         newSupplier,
         {
           headers: { Authorization: `Bearer ${token}` }

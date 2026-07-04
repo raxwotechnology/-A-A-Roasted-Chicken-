@@ -5,6 +5,7 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import API_BASE_URL from "../api.js";
 
 const CustomerList = () => {
   const [customers, setCustomers] = useState([]);

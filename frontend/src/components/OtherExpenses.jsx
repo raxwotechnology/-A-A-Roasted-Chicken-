@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import API_BASE_URL from "../api.js";
 
 const OtherExpenses = () => {
   const [expenses, setExpenses] = useState([]);
@@ -27,7 +28,7 @@ const OtherExpenses = () => {
     const token = localStorage.getItem("token");
 
     try {
-      const res = await axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/expense/other", {
+      const res = await axios.get(`${API_BASE_URL}/api/auth/expense/other`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -56,7 +57,7 @@ const OtherExpenses = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.post(
-        "https://gasmachineserestaurantapp.onrender.com/api/auth/expense/other",
+        `${API_BASE_URL}/api/auth/expense/other`,
         newExpense,
         {
           headers: {

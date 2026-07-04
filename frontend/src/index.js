@@ -6,6 +6,7 @@ import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./context/auth-context";
 import App from "./App";
 import axios from "axios";
+import API_BASE_URL from "./api.js";
 
 // Dynamically rewrite API URLs if REACT_APP_API_URL environment variable is provided
 const apiUrl = process.env.REACT_APP_API_URL;
@@ -14,7 +15,7 @@ if (apiUrl) {
   axios.interceptors.request.use(
     (config) => {
       if (config.url && config.url.includes("gasmachineserestaurantapp.onrender.com")) {
-        config.url = config.url.replace("https://gasmachineserestaurantapp.onrender.com", cleanApiUrl);
+        config.url = config.url.replace(`${API_BASE_URL}`, cleanApiUrl);
       }
       return config;
     },

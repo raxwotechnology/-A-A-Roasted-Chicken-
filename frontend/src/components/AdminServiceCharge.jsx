@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
+import API_BASE_URL from "../api.js";
 
 const AdminServiceCharge = () => {
   const [serviceCharge, setServiceCharge] = useState({
@@ -17,7 +18,7 @@ const AdminServiceCharge = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.get(
-        "https://gasmachineserestaurantapp.onrender.com/api/auth/admin/service-charge",
+        `${API_BASE_URL}/api/auth/admin/service-charge`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -42,7 +43,7 @@ const AdminServiceCharge = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.put(
-        "https://gasmachineserestaurantapp.onrender.com/api/auth/admin/service-charge",
+        `${API_BASE_URL}/api/auth/admin/service-charge`,
         serviceCharge,
         {
           headers: { Authorization: `Bearer ${token}` }

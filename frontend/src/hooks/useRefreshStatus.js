@@ -1,8 +1,9 @@
 // hooks/useRefreshStatus.js
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import API_BASE_URL from "../api.js";
 
-const BASE_URL = "https://gasmachineserestaurantapp.onrender.com/api/auth/refresh-status";
+const BASE_URL = `${API_BASE_URL}/api/auth/refresh-status`;
 
 const useRefreshStatus = () => {
   const [refreshed, setRefreshed] = useState(true);

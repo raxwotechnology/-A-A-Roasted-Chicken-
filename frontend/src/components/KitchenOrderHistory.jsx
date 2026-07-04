@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import API_BASE_URL from "../api.js";
 
 const KitchenOrderHistory = () => {
   const [orders, setOrders] = useState([]);
@@ -7,7 +8,7 @@ const KitchenOrderHistory = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       const token = localStorage.getItem("token");
-      const res = await axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/orders?limit=200", {
+      const res = await axios.get(`${API_BASE_URL}/api/auth/orders?limit=200`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       // Handle both cases (plain array or paginated object)

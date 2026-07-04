@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import API_BASE_URL from "../api.js";
 
 const PrinterSettings = () => {
   const [savedPrinters, setSavedPrinters] = useState([]); // from backend
@@ -20,7 +21,7 @@ const PrinterSettings = () => {
   const fetchSavedPrinters = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/printers", {
+      const res = await axios.get(`${API_BASE_URL}/api/auth/printers`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setSavedPrinters(res.data);
@@ -76,7 +77,7 @@ const PrinterSettings = () => {
       const payload = { name: selectedPrinter };
       // Don't send ID — we're adding a new one (backend handles dupes via unique name)
       const res = await axios.post(
-        "https://gasmachineserestaurantapp.onrender.com/api/auth/printers",
+        `${API_BASE_URL}/api/auth/printers`,
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );

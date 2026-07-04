@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
+import API_BASE_URL from "../api.js";
 
 const SignupForm = ({ role, title }) => {
   const [name, setName] = useState("");
@@ -15,7 +16,7 @@ const SignupForm = ({ role, title }) => {
     setLoading(true); // 👈 Start loading
 
     try {
-      await axios.post("https://gasmachineserestaurantapp.onrender.com/api/auth/signup", {
+      await axios.post(`${API_BASE_URL}/api/auth/signup`, {
         name,
         email,
         password,

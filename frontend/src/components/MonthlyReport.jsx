@@ -11,6 +11,7 @@ import {
   Legend
 } from "chart.js";
 import { FaMoneyBillWave, FaTruckLoading, FaFileInvoiceDollar, FaUserTie, FaChartPie, FaBalanceScale, FaGift, FaTools } from "react-icons/fa";
+import API_BASE_URL from "../api.js";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 

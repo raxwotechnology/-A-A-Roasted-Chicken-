@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
+import API_BASE_URL from "../api.js";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -39,7 +40,7 @@ const TodaySummary = () => {
       const startDate = new Date(today.setHours(0, 0, 0, 0)).toISOString();
       const endDate = new Date(today.setHours(23, 59, 59, 999)).toISOString();
 
-      const res = await axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/admin/summary", {
+      const res = await axios.get(`${API_BASE_URL}/api/auth/admin/summary`, {
         headers: { Authorization: `Bearer ${token}` },
         params: { startDate, endDate }
       });

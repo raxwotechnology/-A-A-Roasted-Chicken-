@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import API_BASE_URL from "../api.js";
 
 const AdminKitchenRequests = () => {
   const [requests, setRequests] = useState([]);
@@ -10,7 +11,7 @@ const AdminKitchenRequests = () => {
     const fetchRequests = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/kitchen/requests", {
+        const res = await axios.get(`${API_BASE_URL}/api/auth/kitchen/requests`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setRequests(res.data);

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import API_BASE_URL from "../api.js";
 
 const MAX_STORAGE_MB = 512; // Atlas free-tiers
 
@@ -12,7 +13,7 @@ const DatabaseUsage = () => {
       try {
         const token = localStorage.getItem("token");
         const res = await axios.get(
-          "https://gasmachineserestaurantapp.onrender.com/api/auth/admin/db-stats",
+          `${API_BASE_URL}/api/auth/admin/db-stats`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }

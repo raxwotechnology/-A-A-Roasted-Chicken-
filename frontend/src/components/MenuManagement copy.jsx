@@ -3,6 +3,7 @@ import axios from "axios";
 
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import API_BASE_URL from "../api.js";
 
 const MenuManagement = () => {
   const [menus, setMenus] = useState([]);
@@ -32,7 +33,7 @@ const MenuManagement = () => {
   const fetchMenus = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/menus", {
+      const res = await axios.get(`${API_BASE_URL}/api/auth/menus`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMenus(res.data);
@@ -62,7 +63,7 @@ const MenuManagement = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.post("https://gasmachineserestaurantapp.onrender.com/api/auth/menu", formData, {
+      const res = await axios.post(`${API_BASE_URL}/api/auth/menu`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`

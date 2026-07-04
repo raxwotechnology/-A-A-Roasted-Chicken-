@@ -5,6 +5,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CreatableSelect from 'react-select/creatable';
 import makeAnimated from 'react-select/animated';
+import API_BASE_URL from "../api.js";
 
 const MenuManagement = () => {
   const [menus, setMenus] = useState([]);
@@ -44,7 +45,7 @@ const MenuManagement = () => {
   const fetchMenus = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/menus", {
+      const res = await axios.get(`${API_BASE_URL}/api/auth/menus`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -143,7 +144,7 @@ const MenuManagement = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.post("https://gasmachineserestaurantapp.onrender.com/api/auth/menu", formData, {
+      const res = await axios.post(`${API_BASE_URL}/api/auth/menu`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${token}`
@@ -306,7 +307,7 @@ const MenuManagement = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.post(
-        "https://gasmachineserestaurantapp.onrender.com/api/auth/menu/restock-all",
+        `${API_BASE_URL}/api/auth/menu/restock-all`,
         { amount: bulkRestockAmount },
         {
           headers: { Authorization: `Bearer ${token}` }

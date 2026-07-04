@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useParams } from "react-router-dom";
+import API_BASE_URL from "../api.js";
 
 const ResetPassword = () => {
   const { token } = useParams(); // Get token from URL

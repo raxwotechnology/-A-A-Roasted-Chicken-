@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import API_BASE_URL from "../api.js";
 
 const ResetPassword = () => {
   const [step, setStep] = useState(1);
@@ -11,7 +12,7 @@ const ResetPassword = () => {
 
   const handleVerifyKey = async () => {
     try {
-      await axios.post("https://gasmachineserestaurantapp.onrender.com/api/auth/verify-reset-key", { key });
+      await axios.post(`${API_BASE_URL}/api/auth/verify-reset-key`, { key });
       setStep(2);
     } catch (err) {
       alert(err.response?.data?.message || "Invalid or expired key");
@@ -20,7 +21,7 @@ const ResetPassword = () => {
 
   const handleResetPassword = async () => {
     try {
-      await axios.post("https://gasmachineserestaurantapp.onrender.com/api/auth/reset-password", { email, key, newPassword });
+      await axios.post(`${API_BASE_URL}/api/auth/reset-password`, { email, key, newPassword });
       alert("Password reset successful!");
       navigate("/");
     } catch (err) {

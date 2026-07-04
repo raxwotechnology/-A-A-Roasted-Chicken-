@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../context/auth-context";
 import "./LoginStyles.css";
+import API_BASE_URL from "../api.js";
 
 const KitchenLogin = () => {
   const [email, setEmail] = useState("");
@@ -15,7 +16,7 @@ const KitchenLogin = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("https://gasmachineserestaurantapp.onrender.com/api/auth/login", {
+      const res = await axios.post(`${API_BASE_URL}/api/auth/login`, {
         email,
         password,
       });

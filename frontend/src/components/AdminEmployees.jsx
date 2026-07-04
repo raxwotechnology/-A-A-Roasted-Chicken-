@@ -5,6 +5,7 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { ToastContainer, toast } from "react-toastify";
 import "./AdminEmployees.css";
+import API_BASE_URL from "../api.js";
 
 const AdminEmployees = () => {
   const [employees, setEmployees] = useState([]);
@@ -15,7 +16,7 @@ const AdminEmployees = () => {
     const fetchEmployees = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/employees", {
+        const res = await axios.get(`${API_BASE_URL}/api/auth/employees`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setEmployees(res.data);

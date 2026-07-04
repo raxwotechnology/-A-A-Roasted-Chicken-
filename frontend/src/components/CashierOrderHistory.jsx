@@ -6,6 +6,7 @@ import "./CashierOrderHistory.css";
 // import { printToBothPrinters } from "../utils/dualPrinter";
 import { printReceiptToBoth } from "../utils/printReceipt";
 import ReceiptModal from "./ReceiptModal";
+import API_BASE_URL from "../api.js";
 
 if (!window.printElement) {
   window.printElement = (element) => {
@@ -494,7 +495,7 @@ const CashierOrderHistory = () => {
       // You can skip if not needed for cashier
       /*
       await axios.post(
-        "https://gasmachineserestaurantapp.onrender.com/api/auth/notifications/send",
+        `${API_BASE_URL}/api/auth/notifications/send`,
         {
           userId: orderId,
           message: `Order #${orderId} is ready.`,

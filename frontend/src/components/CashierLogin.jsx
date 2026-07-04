@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../context/auth-context";
 import "./LoginStyles.css";
+import API_BASE_URL from "../api.js";
 
 const CashierLogin = () => {
   const [email, setEmail] = useState("");
@@ -17,7 +18,7 @@ const CashierLogin = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await axios.post("https://gasmachineserestaurantapp.onrender.com/api/auth/login", { email, password });
+      const res = await axios.post(`${API_BASE_URL}/api/auth/login`, { email, password });
       const data = res.data;
 
       if (data.role !== "cashier") {

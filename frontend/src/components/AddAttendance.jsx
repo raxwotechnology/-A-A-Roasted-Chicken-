@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Select from "react-select";
 import { ToastContainer, toast } from "react-toastify";
+import API_BASE_URL from "../api.js";
 
 const AttendancePage = () => {
   const [employees, setEmployees] = useState([]);
@@ -17,7 +18,7 @@ const AttendancePage = () => {
   const fetchEmployees = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/employees", {
+      const res = await axios.get(`${API_BASE_URL}/api/auth/employees`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setEmployees(res.data);
@@ -43,7 +44,7 @@ const AttendancePage = () => {
 
       const token = localStorage.getItem("token");
       const res = await axios.get(
-        "https://gasmachineserestaurantapp.onrender.com/api/auth/attendance/summary",
+        `${API_BASE_URL}/api/auth/attendance/summary`,
         {
           params: { _id: empId, month, year },
           headers: { Authorization: `Bearer ${token}` }
@@ -89,7 +90,7 @@ const AttendancePage = () => {
       };
 
       const res = await axios.post(
-        "https://gasmachineserestaurantapp.onrender.com/api/auth/attendance/punch",
+        `${API_BASE_URL}/api/auth/attendance/punch`,
         payload,
         {
           headers: {

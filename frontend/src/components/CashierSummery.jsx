@@ -4,6 +4,7 @@ import axios from "axios";
 import { FaMoneyBillWave, FaPlus, FaTrashAlt, FaSyncAlt } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import API_BASE_URL from "../api.js";
 
 const CashierSummary = () => {
   const [orders, setOrders] = useState([]);
@@ -220,7 +221,7 @@ const CashierSummary = () => {
       };
 
       const res = await axios.post(
-        "https://gasmachineserestaurantapp.onrender.com/api/auth/income/other",
+        `${API_BASE_URL}/api/auth/income/other`,
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -263,7 +264,7 @@ const CashierSummary = () => {
       };
 
       const res = await axios.post(
-        "https://gasmachineserestaurantapp.onrender.com/api/auth/expense/other",
+        `${API_BASE_URL}/api/auth/expense/other`,
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -414,7 +415,7 @@ const CashierSummary = () => {
       };
 
       const res = await axios.post(
-        "https://gasmachineserestaurantapp.onrender.com/api/auth/cashier/shift-summary/submitshift",
+        `${API_BASE_URL}/api/auth/cashier/shift-summary/submitshift`,
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );

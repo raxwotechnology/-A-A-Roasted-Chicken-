@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
 import axios from "axios";
+import API_BASE_URL from "../api.js";
 
 export const AuthContext = createContext();
 
@@ -61,7 +62,7 @@ export const AuthProvider = ({ children }) => {
     const fetchCurrency = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/settings/currency", {
+        const res = await axios.get(`${API_BASE_URL}/api/auth/settings/currency`, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
@@ -87,7 +88,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        "https://gasmachineserestaurantapp.onrender.com/api/auth/settings/currency",
+        `${API_BASE_URL}/api/auth/settings/currency`,
         { symbol, currency: code },
         {
           headers: { Authorization: `Bearer ${token}` }

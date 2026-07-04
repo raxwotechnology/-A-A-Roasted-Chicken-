@@ -4,6 +4,7 @@ import { ToastContainer, toast } from "react-toastify";
 import useNotifications from "../hooks/useNotification";
 import ReceiptModal from "./ReceiptModal";
 import { FaEye, FaEdit } from "react-icons/fa";
+import API_BASE_URL from "../api.js";
 
 const TakeawayOrdersPage = () => {
   const { sendNotification } = useNotifications(); // ✅ Use the hook
@@ -42,7 +43,7 @@ const TakeawayOrdersPage = () => {
       };
       if (filterStatus) params.status = filterStatus;
 
-      const res = await axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/cashier/takeaway-orders", {
+      const res = await axios.get(`${API_BASE_URL}/api/auth/cashier/takeaway-orders`, {
         headers: { Authorization: `Bearer ${token}` },
         params
       });
@@ -68,7 +69,7 @@ const TakeawayOrdersPage = () => {
   const fetchDrivers = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/drivers", {
+      const res = await axios.get(`${API_BASE_URL}/api/auth/drivers`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setDrivers(res.data);

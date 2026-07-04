@@ -6,6 +6,7 @@ import html2canvas from "html2canvas";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Doughnut } from "react-chartjs-2";
 // import "./DailyReport.css";
+import API_BASE_URL from "../api.js";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -42,11 +43,11 @@ const DailyReport = () => {
 
     try {
       const [summaryRes, ordersRes] = await Promise.all([
-        axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/admin/summary", {
+        axios.get(`${API_BASE_URL}/api/auth/admin/summary`, {
           headers: { Authorization: `Bearer ${token}` },
           params: { startDate, endDate }
         }),
-        axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/orders?limit=1000", {
+        axios.get(`${API_BASE_URL}/api/auth/orders?limit=1000`, {
           headers: { Authorization: `Bearer ${token}` },
           params: { startDate, endDate }
         })

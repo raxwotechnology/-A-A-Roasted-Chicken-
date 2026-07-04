@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
+import API_BASE_URL from "../api.js";
 
 const Signup = () => {
   const [name, setName] = useState("");
@@ -27,7 +28,7 @@ const Signup = () => {
     }
 
     try {
-      await axios.post("https://gasmachineserestaurantapp.onrender.com/api/auth/signup", {
+      await axios.post(`${API_BASE_URL}/api/auth/signup`, {
         name,
         email,
         password,

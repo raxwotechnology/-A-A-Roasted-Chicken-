@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import API_BASE_URL from "../api.js";
 
 const AdminEmployeeRegister = () => {
   const navigate = useNavigate();
@@ -25,7 +26,7 @@ const AdminEmployeeRegister = () => {
     const fetchNextId = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/employees/next-id", {
+        const res = await axios.get(`${API_BASE_URL}/api/auth/employees/next-id`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setGeneratedId(res.data.nextId);
@@ -52,7 +53,7 @@ const AdminEmployeeRegister = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.post(
-        "https://gasmachineserestaurantapp.onrender.com/api/auth/employee/register",
+        `${API_BASE_URL}/api/auth/employee/register`,
         payload,
         {
           headers: {

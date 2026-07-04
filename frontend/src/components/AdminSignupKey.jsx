@@ -1,6 +1,7 @@
 // src/components/AdminSignupKey.jsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import API_BASE_URL from "../api.js";
 
 const AdminSignupKey = () => {
   const [keys, setKeys] = useState([]);
@@ -10,7 +11,7 @@ const AdminSignupKey = () => {
   useEffect(() => {
     const fetchKeys = async () => {
       const token = localStorage.getItem("token");
-      const res = await axios.get("https://gasmachineserestaurantapp.onrender.com/api/auth/signup-keys", {
+      const res = await axios.get(`${API_BASE_URL}/api/auth/signup-keys`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setKeys(res.data);
@@ -22,7 +23,7 @@ const AdminSignupKey = () => {
   const generateKey = async () => {
     const token = localStorage.getItem("token");
     const res = await axios.post(
-      "https://gasmachineserestaurantapp.onrender.com/api/auth/generate-key",
+      `${API_BASE_URL}/api/auth/generate-key`,
       {},
       {
         headers: { Authorization: `Bearer ${token}` },

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
+import API_BASE_URL from "../api.js";
 
 const AdminRefreshStatus = () => {
   const [refreshed, setRefreshed] = useState(true);
@@ -14,7 +15,7 @@ const AdminRefreshStatus = () => {
       try {
         const token = localStorage.getItem("token");
         const res = await axios.get(
-          "https://gasmachineserestaurantapp.onrender.com/api/auth/refresh-status",
+          `${API_BASE_URL}/api/auth/refresh-status`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setRefreshed(res.data.refreshed);
@@ -36,7 +37,7 @@ const AdminRefreshStatus = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.post(
-        "https://gasmachineserestaurantapp.onrender.com/api/auth/refresh-status/reset",
+        `${API_BASE_URL}/api/auth/refresh-status/reset`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );

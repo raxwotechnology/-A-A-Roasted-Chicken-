@@ -13,7 +13,28 @@ dotenv.config();
 
 
 app.use(express.json());
-app.use(cors());
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:5173",
+  "https://demo-restaurant-v6g2.onrender.com",
+  /\.netlify\.app$/,         // any Netlify subdomain
+  /\.netlify\.live$/,        // Netlify live previews
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, Postman, etc.)
+    if (!origin) return callback(null, true);
+    const allowed = allowedOrigins.some(o =>
+      typeof o === "string" ? o === origin : o.test(origin)
+    );
+    if (allowed) return callback(null, true);
+    callback(new Error("Not allowed by CORS: " + origin));
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
 
 // Connect to DB
 connectDB();
