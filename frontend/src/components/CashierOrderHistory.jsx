@@ -47,6 +47,35 @@ const CashierOrderHistory = () => {
   const [totalPages, setTotalPages] = useState(0); 
   const ORDERS_PER_PAGE = 50; 
 
+  const [restaurantDetails, setRestaurantDetails] = useState({
+    name: "OAK & IVORY RESTAURANT",
+    address: "No: 5/B/C, Ja- Ela Road, Gampaha.",
+    phone: "071 1635912",
+    logo: ""
+  });
+
+  useEffect(() => {
+    const fetchRestaurantSettings = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get(`${API_BASE_URL}/api/auth/settings/restaurant`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.data) {
+          setRestaurantDetails({
+            name: res.data.name || "OAK & IVORY RESTAURANT",
+            address: res.data.address || "No: 5/B/C, Ja- Ela Road, Gampaha.",
+            phone: res.data.phone || "071 1635912",
+            logo: res.data.logo || ""
+          });
+        }
+      } catch (err) {
+        console.error("Failed to fetch settings in order history:", err);
+      }
+    };
+    fetchRestaurantSettings();
+  }, []);
+
   useEffect(() => {
     fetchOrders(1);
   }, [filters]);
@@ -338,11 +367,15 @@ const CashierOrderHistory = () => {
     ` : "";
 
     // Build full HTML
+    const nameParts = restaurantDetails.name.split(" ");
+    const restTitleMain = nameParts[0] || "OAK";
+    const restTitleSub = nameParts.slice(1).join(" ") || "IVORY RESTAURANT";
+
     container.innerHTML = `
-      <h3 style="text-align:center; margin:0;"><strong>Gasma</strong></h3>
-      <h3 style="text-align:center; margin:4px 0 12px;"><strong>Chinese Restaurant</strong></h3>
-      <p style="text-align:center; margin:0;">No. 14/2/D, Pugoda Road, Katulanda, Dekatana.</p>
-      <p style="text-align:center; margin:0 0 16px;">0777122797</p>
+      <h3 style="text-align:center; margin:0;"><strong>${restTitleMain}</strong></h3>
+      <h3 style="text-align:center; margin:4px 0 12px;"><strong>${restTitleSub}</strong></h3>
+      <p style="text-align:center; margin:0;">${restaurantDetails.address}</p>
+      <p style="text-align:center; margin:0 0 16px;">${restaurantDetails.phone}</p>
       <hr />
 
       ${invoiceDetails}

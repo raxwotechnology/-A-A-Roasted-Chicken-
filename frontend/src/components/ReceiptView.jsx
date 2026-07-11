@@ -6,23 +6,41 @@ const ReceiptView = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [restaurantDetails, setRestaurantDetails] = useState({
+    name: "OAK & IVORY RESTAURANT",
+    address: "No: 5/B/C, Ja- Ela Road, Gampaha.",
+    phone: "071 1635912",
+    logo: ""
+  });
 
-  // Get order ID from URL
-  const params = new URLSearchParams(window.location.search);
-  const orderId = window.location.pathname.split("/").pop(); // e.g., /receipt/abc123 → abc123
+  const orderId = window.location.pathname.split("/").pop();
 
   useEffect(() => {
-    const fetchOrder = async () => {
+    const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get(`https://gasmachineserestaurantapp.onrender.com/api/auth/order/${orderId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
+        const headers = { Authorization: `Bearer ${token}` };
 
-        setOrder(res.data);
-        window.print(); // Auto-print after data loads
+        // Fetch Order
+        const orderRes = await axios.get(`https://gasmachineserestaurantapp.onrender.com/api/auth/order/${orderId}`, { headers });
+        setOrder(orderRes.data);
+
+        // Fetch Restaurant Details
+        try {
+          const restRes = await axios.get(`${API_BASE_URL}/api/auth/settings/restaurant`, { headers });
+          if (restRes.data) {
+            setRestaurantDetails({
+              name: restRes.data.name || "OAK & IVORY RESTAURANT",
+              address: restRes.data.address || "No: 5/B/C, Ja- Ela Road, Gampaha.",
+              phone: restRes.data.phone || "071 1635912",
+              logo: restRes.data.logo || ""
+            });
+          }
+        } catch (e) {
+          console.error("Failed to load restaurant details in ReceiptView:", e);
+        }
+
+        window.print();
       } catch (err) {
         console.error("Failed to load order:", err.response?.data || err.message);
         setError(err.response?.data?.error || "Failed to load order");
@@ -31,20 +49,29 @@ const ReceiptView = () => {
       }
     };
 
-    fetchOrder();
+    fetchData();
   }, []);
 
   if (loading) return <div>Loading...</div>;
-  if (error)
-    return (
-      <div className="alert alert-danger">{error}</div>
-    );
-
+  if (error) return <div className="alert alert-danger">{error}</div>;
   if (!order) return null;
 
   return (
-    <div style={{ maxWidth: "400px", margin: "auto", padding: "20px", fontFamily: "monospace" }}>
-      <h3 className="text-center">RMS Restaurant</h3>
+    <div style={{ maxWidth: "400px", margin: "auto", padding: "20px", fontFamily: "Calibri, sans-serif" }}>
+      {restaurantDetails.logo && (
+        <div style={{ textAlign: "center", marginBottom: "15px" }}>
+          <img
+            src={restaurantDetails.logo}
+            alt="Logo"
+            style={{ width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover" }}
+          />
+        </div>
+      )}
+      <h3 className="text-center" style={{ margin: "5px 0" }}><strong>{restaurantDetails.name}</strong></h3>
+      <p className="text-center" style={{ margin: "2px 0", fontSize: "13px" }}>{restaurantDetails.address}</p>
+      <p className="text-center" style={{ margin: "2px 0 10px 0", fontSize: "14px" }}><strong>{restaurantDetails.phone}</strong></p>
+      <hr />
+      
       <p><strong>Date:</strong> {new Date(order.date).toLocaleString()}</p>
       <p><strong>Customer:</strong> {order.customerName}</p>
       <p><strong>Phone:</strong> {order.customerPhone}</p>

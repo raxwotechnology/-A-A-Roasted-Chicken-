@@ -14,6 +14,7 @@ const Driver = require("./models/Driver");
 const ServiceCharge = require("./models/ServiceCharge");
 const DeliveryCharge = require("./models/DeliveryCharge");
 const CurrencySetting = require("./models/CurrencySetting");
+const RestaurantSetting = require("./models/RestaurantSetting");
 
 const connectDB = async () => {
   try {
@@ -92,6 +93,17 @@ const seed = async () => {
   if (!currencyExists) {
     await new CurrencySetting({ currency: "LKR", symbol: "Rs." }).save();
     console.log("Currency setting created.");
+  }
+
+  const restaurantSettingsExists = await RestaurantSetting.findOne({});
+  if (!restaurantSettingsExists) {
+    await new RestaurantSetting({
+      name: "OAK & IVORY RESTAURANT",
+      address: "No: 5/B/C, Ja- Ela Road, Gampaha.",
+      phone: "071 1635912",
+      logo: ""
+    }).save();
+    console.log("Restaurant settings created.");
   }
 
   const serviceChargeExists = await ServiceCharge.findOne({});

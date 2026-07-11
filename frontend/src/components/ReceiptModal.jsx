@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import axios from "axios";
 import { printReceiptToBoth } from "../utils/printReceipt";
 import LogoImage from "../upload/logo.png";
+import API_BASE_URL from "../api.js";
 
 const exportToPDF = () => {
   const input = document.getElementById("receipt-content");
@@ -24,6 +26,35 @@ const exportToPDF = () => {
 };
 
 const ReceiptModal = ({ order, onClose }) => {
+  const [restaurantDetails, setRestaurantDetails] = useState({
+    name: "OAK & IVORY RESTAURANT",
+    address: "No: 5/B/C, Ja- Ela Road, Gampaha.",
+    phone: "071 1635912",
+    logo: ""
+  });
+
+  useEffect(() => {
+    const fetchRestaurantSettings = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get(`${API_BASE_URL}/api/auth/settings/restaurant`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.data) {
+          setRestaurantDetails({
+            name: res.data.name || "OAK & IVORY RESTAURANT",
+            address: res.data.address || "No: 5/B/C, Ja- Ela Road, Gampaha.",
+            phone: res.data.phone || "071 1635912",
+            logo: res.data.logo || ""
+          });
+        }
+      } catch (err) {
+        console.error("Failed to fetch restaurant settings in modal:", err);
+      }
+    };
+    fetchRestaurantSettings();
+  }, []);
+
   if (!order) return null;
 
   const symbol = localStorage.getItem("currencySymbol") || "$";
@@ -35,6 +66,8 @@ const ReceiptModal = ({ order, onClose }) => {
     items,
     totalPrice
   } = order;
+
+  const logoSrc = restaurantDetails.logo || LogoImage;
 
   // Inside ReceiptModal component
   const generatePrintableHTML = () => {
@@ -137,12 +170,12 @@ const ReceiptModal = ({ order, onClose }) => {
         <!-- ✅ SMALL CIRCULAR LOGO -->
         <div class="text-center mb-2">
           <div style="width:80px;height:80px;border-radius:50%;overflow:hidden;margin:0 auto 4px;box-shadow:0 1px 2px rgba(0,0,0,0.1);">
-            <img src=${LogoImage} alt="Gasma Logo" style="width:100%;height:100%;object-fit:cover;display:block;">
+            <img src="${logoSrc}" alt="Logo" style="width:100%;height:100%;object-fit:cover;display:block;">
           </div>
         </div>
-          <h3 class="text-center" style=" font-size:20px; "><strong>Gasma Chinese Restaurant</strong></h3>
-          <p class="text-center mb-1" style=" font-size:12px; ">No. 14/2/D, Pugoda Road, Katulanda, Dekatana.</p>
-          <p class="text-center mb-3" style=" font-size:15px; "><strong>0777122797</strong></p>
+          <h3 class="text-center" style=" font-size:20px; "><strong>${restaurantDetails.name}</strong></h3>
+          <p class="text-center mb-1" style=" font-size:12px; ">${restaurantDetails.address}</p>
+          <p class="text-center mb-3" style=" font-size:15px; "><strong>${restaurantDetails.phone}</strong></p>
           <hr />
 
           <div style="font-size:16px;margin-bottom:12px;">
@@ -270,8 +303,8 @@ const ReceiptModal = ({ order, onClose }) => {
             }}
           >
             <img
-              src={LogoImage}
-              alt="Gasma Logo"
+              src={logoSrc}
+              alt="Logo"
               style={{
                 width: '100%',
                 height: '100%',
@@ -281,11 +314,9 @@ const ReceiptModal = ({ order, onClose }) => {
             />
           </div>
         </div>
-        {/* <h4 className="text-center mb-3">🍽️ <strong>Gasma Chinese Restaurant </strong></h4> */}
-        {/* <h3 className="mb-0 fs-5" style={{ textAlign: "center" }} ><strong>Gasma</strong></h3> */}
-        <h3 className="mb-1 fs-4" style={{ textAlign: "center" }}><strong>Gasma Chinese Restaurant</strong></h3>
-        <p className="mb-0" style={{ textAlign: "center", fontSize: "13px" }}> No. 14/2/D, Pugoda Road, Katulanda, Dekatana.</p>
-        <p className="mb-3" style={{ textAlign: "center", fontSize: "14px" }}><strong>0777122797</strong></p>
+        <h3 className="mb-1 fs-4" style={{ textAlign: "center" }}><strong>{restaurantDetails.name}</strong></h3>
+        <p className="mb-0" style={{ textAlign: "center", fontSize: "13px" }}>{restaurantDetails.address}</p>
+        <p className="mb-3" style={{ textAlign: "center", fontSize: "14px" }}><strong>{restaurantDetails.phone}</strong></p>
         <hr style={{ margin: "10px 4px" }}/>
         {/* <p className="mb-1"><strong>Invoice No:</strong> {order.invoiceNo}</p>
         <p className="mb-1"><strong>Date:</strong> {new Date().toLocaleString()}</p>

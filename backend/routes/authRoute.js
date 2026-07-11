@@ -28,6 +28,7 @@ const forgotPasswordController = require("../controllers/forgotPasswordControlle
 const employeeController = require("../controllers/employeeController");
 
 const currencyController = require("../controllers/currencyController");
+const restaurantController = require("../controllers/restaurantController");
 
 const attendanceController = require("../controllers/attendanceController");
 
@@ -162,6 +163,10 @@ router.get("/employees/next-id", authMiddleware(["admin"]), employeeController.g
 // Currency Settings
 router.get("/settings/currency", authMiddleware(["admin"]), currencyController.getCurrency);
 router.put("/settings/currency", authMiddleware(["admin"]), currencyController.updateCurrency);
+
+// Restaurant Settings
+router.get("/settings/restaurant", restaurantController.getRestaurantSetting);
+router.put("/settings/restaurant", authMiddleware(["admin"]), restaurantController.updateRestaurantSetting);
 
 // Suppliers
 router.post("/supplier/register", authMiddleware(["admin", "cashier"]), supplierController.registerSupplier);

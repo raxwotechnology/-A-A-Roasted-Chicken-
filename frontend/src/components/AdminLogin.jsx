@@ -1,11 +1,12 @@
 // src/components/AdminLogin.jsx
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../context/auth-context";
 import "./LoginStyles.css";
 import API_BASE_URL from "../api.js";
+import LogoImage from "../upload/logo.png";
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("");
@@ -13,6 +14,30 @@ const AdminLogin = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const { login } = useContext(AuthContext);
+
+  const [restaurantDetails, setRestaurantDetails] = useState({
+    name: "OAK & IVORY RESTAURANT",
+    logo: ""
+  });
+
+  useEffect(() => {
+    const fetchRestaurantSettings = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/api/auth/settings/restaurant`);
+        if (res.data) {
+          setRestaurantDetails({
+            name: res.data.name || "OAK & IVORY RESTAURANT",
+            logo: res.data.logo || ""
+          });
+        }
+      } catch (err) {
+        console.error("Failed to fetch settings on login:", err);
+      }
+    };
+    fetchRestaurantSettings();
+  }, []);
+
+  const logoSrc = restaurantDetails.logo || LogoImage;
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -36,54 +61,69 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="login-page">
-      <div className="login-card">
-        <div className="login-header">
-          <span className="login-role-badge admin">Admin Portal</span>
-          <h2 className="login-title">Sign In</h2>
+    <div className="login-container">
+      {/* Left panel: brand / background */}
+      <div className="login-brand-panel">
+        <div className="login-brand-overlay" />
+        <div className="login-brand-content">
+          <div className="login-brand-logo-ring">
+            <img src={logoSrc} alt="Restaurant Logo" />
+          </div>
+          <h1 className="login-brand-name">{restaurantDetails.name}</h1>
+          <p className="login-brand-tagline">GOOD FOOD • GOOD MOOD • GREAT MEMORIES</p>
         </div>
+      </div>
 
-        <div className="login-divider" />
-
-        <form onSubmit={handleLogin} className="login-form">
-          <div className="mb-3">
-            <label htmlFor="email" className="form-label">Email Address</label>
-            <input
-              type="email"
-              className="form-control"
-              id="email"
-              placeholder="admin@gasma.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={loading}
-            />
+      {/* Right panel: login card */}
+      <div className="login-form-panel">
+        <div className="login-card">
+          <div className="login-header">
+            <span className="login-role-badge admin">Admin Portal</span>
+            <h2 className="login-title">Sign In</h2>
           </div>
-          <div className="mb-3">
-            <label htmlFor="password" className="form-label">Password</label>
-            <input
-              type="password"
-              className="form-control"
-              id="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={loading}
-            />
-          </div>
-          <button type="submit" className="login-submit-btn" disabled={loading}>
-            {loading ? (
-              <>
-                <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                Signing in...
-              </>
-            ) : "Sign In"}
-          </button>
-        </form>
 
-        <div className="login-footer">
-          <Link to="/forgot-password" className="login-footer-link">Forgot your password?</Link>
+          <div className="login-divider" />
+
+          <form onSubmit={handleLogin} className="login-form">
+            <div className="mb-3">
+              <label htmlFor="email" className="form-label">Email Address</label>
+              <input
+                type="email"
+                className="form-control"
+                id="email"
+                placeholder="admin@restaurant.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={loading}
+              />
+            </div>
+            <div className="mb-3">
+              <label htmlFor="password" className="form-label">Password</label>
+              <input
+                type="password"
+                className="form-control"
+                id="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                disabled={loading}
+              />
+            </div>
+            <button type="submit" className="login-submit-btn" disabled={loading}>
+              {loading ? (
+                <>
+                  <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                  Signing in...
+                </>
+              ) : "Sign In"}
+            </button>
+          </form>
+
+          <div className="login-footer">
+            <Link to="/forgot-password" className="login-footer-link">Forgot your password?</Link>
+          </div>
         </div>
       </div>
     </div>

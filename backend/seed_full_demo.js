@@ -14,6 +14,7 @@ const ServiceCharge = require("./models/ServiceCharge");
 const DeliveryCharge = require("./models/DeliveryCharge");
 const DeliveryChargeByPlace = require("./models/DeliveryChargeByPlace");
 const CurrencySetting = require("./models/CurrencySetting");
+const RestaurantSetting = require("./models/RestaurantSetting");
 const Order = require("./models/Order");
 const Customer = require("./models/Customer");
 const Attendance = require("./models/Attendance");
@@ -45,7 +46,16 @@ const seed = async () => {
 
     await db.collection("deliverycharges").deleteMany({});
     await new DeliveryCharge({ amount: 300, isActive: true }).save();
-    console.log("✅ Settings seeded (Currency, Service Charge, Delivery Charge)");
+
+    await db.collection("restaurantsettings").deleteMany({});
+    await new RestaurantSetting({
+      name: "OAK & IVORY RESTAURANT",
+      address: "No: 5/B/C, Ja- Ela Road, Gampaha.",
+      phone: "071 1635912",
+      logo: ""
+    }).save();
+
+    console.log("✅ Settings seeded (Currency, Service Charge, Delivery Charge, Restaurant Settings)");
 
     // ===== 3. DELIVERY PLACES =====
     await db.collection("deliverychargebyplaces").deleteMany({});

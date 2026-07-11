@@ -1,9 +1,33 @@
-// src/components/Home.jsx
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import LogoImage from "../upload/logo.jpg";
+import axios from "axios";
+import API_BASE_URL from "../api.js";
 
 const Home = () => {
+  const [restaurantDetails, setRestaurantDetails] = useState({
+    name: "OAK & IVORY RESTAURANT",
+    logo: ""
+  });
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/api/auth/settings/restaurant`);
+        if (res.data) {
+          setRestaurantDetails({
+            name: res.data.name || "OAK & IVORY RESTAURANT",
+            logo: res.data.logo || ""
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load settings on Home page:", err);
+      }
+    };
+    fetchSettings();
+  }, []);
+
+  const logoSrc = restaurantDetails.logo || LogoImage;
   return (
     <>
       <style>{`
@@ -233,11 +257,11 @@ const Home = () => {
       <div className="home-page">
         <div className="home-card">
           <div className="logo-ring">
-            <img src={LogoImage} alt="Gasma Chinese Restaurant Logo" />
+            <img src={logoSrc} alt="Logo" />
           </div>
 
           <div className="home-subtitle">Restaurant Management System</div>
-          <h1 className="home-brand">Gasma Chinese</h1>
+          <h1 className="home-brand">{restaurantDetails.name}</h1>
 
           <div className="home-divider">Select Your Role</div>
 

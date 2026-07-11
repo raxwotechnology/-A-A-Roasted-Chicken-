@@ -45,6 +45,7 @@ import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
 
 import CurrencySettings from "./components/CurrencySettings";
+import RestaurantSettings from "./components/RestaurantSettings";
 
 import AdminEmployees from "./components/AdminEmployees";
 import CustomerList from "./components/CustomerList";
@@ -120,6 +121,7 @@ function App() {
 
 
         <Route path="/admin/currency" element={<CurrencySettings />} />
+        <Route path="/admin/restaurant-settings" element={<RestaurantSettings />} />
         <Route path="/admin/kitchen-requests" element={<AdminKitchenRequests />} />
         <Route path="/admin/service-charge" element={<AdminServiceCharge />} />
         <Route path="/admin/delivery-charge" element={<AdminDeliveryCharge />} />

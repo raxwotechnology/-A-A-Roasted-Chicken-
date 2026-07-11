@@ -14,6 +14,8 @@ import "./Sidebar.css";
 import NotificationCenter from "./NotificationCenter";
 import useRefreshStatus from "../hooks/useRefreshStatus";
 import { FaRedo } from "react-icons/fa";
+import axios from "axios";
+import API_BASE_URL from "../api.js";
 
 const RoleLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -27,10 +29,32 @@ const RoleLayout = () => {
   const { refreshed, markAsRefreshed } = useRefreshStatus();
   const [openGroups, setOpenGroups] = useState({});
 
+  const [restaurantName, setRestaurantName] = useState("OAK & IVORY RESTAURANT");
+  const [restaurantLogo, setRestaurantLogo] = useState("");
+
   const handleHardRefresh = async () => {
     await markAsRefreshed();
     window.location.reload();
   };
+
+  useEffect(() => {
+    const fetchRestaurantDetails = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/api/auth/settings/restaurant`);
+        if (res.data) {
+          setRestaurantName(res.data.name || "OAK & IVORY RESTAURANT");
+          setRestaurantLogo(res.data.logo || "");
+        }
+      } catch (err) {
+        console.error("Failed to load restaurant settings in sidebar:", err);
+      }
+    };
+    fetchRestaurantDetails();
+  }, []);
+
+  const nameParts = restaurantName.split(" ");
+  const brandName = nameParts[0] || "OAK";
+  const brandSub = nameParts.slice(1).join(" ") || "IVORY RESTAURANT";
 
   useEffect(() => {
     const handleResize = () => {
@@ -158,6 +182,7 @@ const RoleLayout = () => {
               ["/admin/delivery-charges", "Delivery Charge", FaTruckLoading],
               ["/printer-settings", "Printer Settings", FaPrint],
               ["/admin/signup-key", "Signup Key", FaKey],
+              ["/admin/restaurant-settings", "Restaurant Settings", FaUtensils],
               ["/admin/currency", "Currency", FaDollarSign],
               ["/admin/db-Status", "Database Status", FaDatabase],
               ["/admin/refresh-update", "Update Refresh", FaRedo],
@@ -225,14 +250,15 @@ const RoleLayout = () => {
         >
           <div className="sidebar-header d-flex align-items-center">
             <img
-              src="/logo.jpg"
+              src={restaurantLogo || "/logo.jpg"}
               alt="Logo"
               className="sidebar-logo rounded-circle flex-shrink-0"
+              style={{ objectFit: "cover", width: "40px", height: "40px" }}
             />
             {isSidebarExpanded && (
               <div className="sidebar-brand ms-2">
-                <div className="sidebar-brand-name">Gasma</div>
-                <div className="sidebar-brand-sub">Chinese Restaurant</div>
+                <div className="sidebar-brand-name" style={{ fontSize: "1.1rem", fontWeight: "bold" }}>{brandName}</div>
+                <div className="sidebar-brand-sub" style={{ fontSize: "0.75rem", opacity: 0.8 }}>{brandSub}</div>
               </div>
             )}
           </div>
