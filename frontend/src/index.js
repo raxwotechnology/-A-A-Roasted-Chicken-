@@ -14,7 +14,7 @@ if (apiUrl) {
   const cleanApiUrl = apiUrl.replace(/\/$/, "");
   axios.interceptors.request.use(
     (config) => {
-      if (config.url && config.url.includes("gasmachineserestaurantapp.onrender.com")) {
+      if (config.url && config.url.includes(API_BASE_URL)) {
         config.url = config.url.replace(`${API_BASE_URL}`, cleanApiUrl);
       }
       return config;

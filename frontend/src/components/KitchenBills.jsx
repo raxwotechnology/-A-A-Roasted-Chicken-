@@ -115,7 +115,7 @@ const KitchenBills = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.put(
-        `https://gasmachineserestaurantapp.onrender.com/api/auth/kitchen/bill/${editingBill}`,
+        `${API_BASE_URL}/api/auth/kitchen/bill/${editingBill}`,
         editData,
         {
           headers: { Authorization: `Bearer ${token}` }
@@ -138,7 +138,7 @@ const KitchenBills = () => {
 
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`https://gasmachineserestaurantapp.onrender.com/api/auth/kitchen/bill/${id}`, {
+      await axios.delete(`${API_BASE_URL}/api/auth/kitchen/bill/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

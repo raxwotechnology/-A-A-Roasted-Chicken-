@@ -68,7 +68,7 @@ const AdminUsers = () => {
     const token = localStorage.getItem("token");
     try {
       const res = await axios.put(
-        `https://gasmachineserestaurantapp.onrender.com/api/auth/user/${id}/role`,
+        `${API_BASE_URL}/api/auth/user/${id}/role`,
         { role: newRole },
         {
           headers: { Authorization: `Bearer ${token}` }
@@ -90,7 +90,7 @@ const AdminUsers = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.put(
-        `https://gasmachineserestaurantapp.onrender.com/api/auth/user/${id}/deactivate`,
+        `${API_BASE_URL}/api/auth/user/${id}/deactivate`,
         {},
         {
           headers: { Authorization: `Bearer ${token}` }
@@ -115,7 +115,7 @@ const AdminUsers = () => {
 
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.put(`https://gasmachineserestaurantapp.onrender.com/api/auth/user/reactivate/${id}`, {}, {
+      const res = await axios.put(`${API_BASE_URL}/api/auth/user/reactivate/${id}`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

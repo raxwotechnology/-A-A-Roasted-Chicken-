@@ -95,7 +95,7 @@ const RegisterDriverPage = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.put(
-        `https://gasmachineserestaurantapp.onrender.com/api/auth/drivers/${editingDriver}`,
+        `${API_BASE_URL}/api/auth/drivers/${editingDriver}`,
         editData,
         {
           headers: {
@@ -121,7 +121,7 @@ const RegisterDriverPage = () => {
 
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`https://gasmachineserestaurantapp.onrender.com/api/auth/drivers/${id}`, {
+      await axios.delete(`${API_BASE_URL}/api/auth/drivers/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

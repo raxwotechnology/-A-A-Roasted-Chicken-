@@ -29,7 +29,7 @@ const AdminKitchenRequests = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.put(
-        `https://gasmachineserestaurantapp.onrender.com/api/auth/kitchen/request/${id}/status`,
+        `${API_BASE_URL}/api/auth/kitchen/request/${id}/status`,
         { status: newStatus },
         {
           headers: { Authorization: `Bearer ${token}` }

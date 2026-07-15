@@ -97,7 +97,7 @@ const SupplierRegistration = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.put(
-        `https://gasmachineserestaurantapp.onrender.com/api/auth/supplier/${editingSupplier}`,
+        `${API_BASE_URL}/api/auth/supplier/${editingSupplier}`,
         editData,
         {
           headers: { Authorization: `Bearer ${token}` }
@@ -117,7 +117,7 @@ const SupplierRegistration = () => {
     if (!window.confirm("Are you sure you want to delete this supplier?")) return;
 
     axios
-      .delete(`https://gasmachineserestaurantapp.onrender.com/api/auth/supplier/${id}`, {
+      .delete(`${API_BASE_URL}/api/auth/supplier/${id}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
       })
       .then(() => {

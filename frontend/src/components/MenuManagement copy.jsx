@@ -126,7 +126,7 @@ const MenuManagement = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.put(
-        `https://gasmachineserestaurantapp.onrender.com/api/auth/menu/${editingMenu}`,
+        `${API_BASE_URL}/api/auth/menu/${editingMenu}`,
         formData,
         {
           headers: {
@@ -152,7 +152,7 @@ const MenuManagement = () => {
 
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`https://gasmachineserestaurantapp.onrender.com/api/auth/menu/${id}`, {
+      await axios.delete(`${API_BASE_URL}/api/auth/menu/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMenus(menus.filter((menu) => menu._id !== id));
@@ -213,7 +213,7 @@ const MenuManagement = () => {
       const token = localStorage.getItem("token");
 
       const res = await axios.put(
-        `https://gasmachineserestaurantapp.onrender.com/api/auth/menu/${restockMenu._id}`,
+        `${API_BASE_URL}/api/auth/menu/${restockMenu._id}`,
         {
           minimumQty: updatedAvailableQty,
           currentQty: updatedCurrentQty
@@ -453,7 +453,7 @@ const MenuManagement = () => {
             <div key={menu._id} className="col-md-3 mb-3">
               <div className="card shadow-sm h-100 position-relative">
                 <img
-                  src={`https://gasmachineserestaurantapp.onrender.com${menu.imageUrl}`}
+                  src={`${API_BASE_URL}${menu.imageUrl}`}
                   alt={menu.name}
                   className="card-img-top"
                   style={{ height: "280px", objectFit: "fill" }}
@@ -602,7 +602,7 @@ const MenuManagement = () => {
                   <img
                     src={
                       editPreview ||
-                      `https://gasmachineserestaurantapp.onrender.com${editData.imageUrl}`
+                      `${API_BASE_URL}${editData.imageUrl}`
                     }
                     alt="Preview"
                     style={{

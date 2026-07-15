@@ -68,7 +68,7 @@ const KitchenLanding = () => {
     const token = localStorage.getItem("token");
     try {
       await axios.put(
-        `https://gasmachineserestaurantapp.onrender.com/api/auth/order/${id}/status`,
+        `${API_BASE_URL}/api/auth/order/${id}/status`,
         { status: "Ready" },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -106,7 +106,7 @@ const KitchenLanding = () => {
     const updatePromises = liveOrderIds.map(async (id) => {
       try {
         await axios.put(
-          `https://gasmachineserestaurantapp.onrender.com/api/auth/order/${id}/status`,
+          `${API_BASE_URL}/api/auth/order/${id}/status`,
           { status: "Ready" },
           { headers: { Authorization: `Bearer ${token}` } }
         );

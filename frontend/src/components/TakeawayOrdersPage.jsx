@@ -98,7 +98,7 @@ const TakeawayOrdersPage = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.put(
-        `https://gasmachineserestaurantapp.onrender.com/api/auth/order/${editingOrderId}/delivery-status`,
+        `${API_BASE_URL}/api/auth/order/${editingOrderId}/delivery-status`,
         editData,
         {
           headers: {

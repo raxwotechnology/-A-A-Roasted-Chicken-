@@ -214,7 +214,7 @@ const MenuManagement = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.put(
-        `https://gasmachineserestaurantapp.onrender.com/api/auth/menu/${editingMenu}`,
+        `${API_BASE_URL}/api/auth/menu/${editingMenu}`,
         formData,
         {
           headers: {
@@ -242,7 +242,7 @@ const MenuManagement = () => {
 
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`https://gasmachineserestaurantapp.onrender.com/api/auth/menu/${id}`, {
+      await axios.delete(`${API_BASE_URL}/api/auth/menu/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -279,7 +279,7 @@ const MenuManagement = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.put(
-        `https://gasmachineserestaurantapp.onrender.com/api/auth/menu/${restockMenu._id}`,
+        `${API_BASE_URL}/api/auth/menu/${restockMenu._id}`,
         {
           minimumQty: updatedAvailableQty,
           currentQty: updatedCurrentQty
@@ -800,7 +800,7 @@ const MenuManagement = () => {
                   // src={
                   //   menu.imageUrl.startsWith("https")
                   //     ? menu.imageUrl
-                  //     : `https://gasmachineserestaurantapp.onrender.com${menu.imageUrl}`
+                  //     : `${API_BASE_URL}${menu.imageUrl}`
                   // }
                   src={
                     menu.imageUrl.startsWith("https")

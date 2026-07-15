@@ -19,7 +19,7 @@ const ResetPassword = () => {
 
     try {
       const res = await axios.post(
-        `https://gasmachineserestaurantapp.onrender.com/api/auth/reset-password/${token}`,
+        `${API_BASE_URL}/api/auth/reset-password/${token}`,
         {
           newPassword: password
         }

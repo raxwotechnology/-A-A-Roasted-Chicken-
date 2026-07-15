@@ -115,7 +115,7 @@ const OtherExpenses = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.put(
-        `https://gasmachineserestaurantapp.onrender.com/api/auth/expense/other/${editingExpense}`,
+        `${API_BASE_URL}/api/auth/expense/other/${editingExpense}`,
         editData,
         {
           headers: { Authorization: `Bearer ${token}` }
@@ -138,7 +138,7 @@ const OtherExpenses = () => {
 
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`https://gasmachineserestaurantapp.onrender.com/api/auth/expense/other/${id}`, {
+      await axios.delete(`${API_BASE_URL}/api/auth/expense/other/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

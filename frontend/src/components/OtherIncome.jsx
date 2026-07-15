@@ -115,7 +115,7 @@ const OtherIncome = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.put(
-        `https://gasmachineserestaurantapp.onrender.com/api/auth/income/other/${editingIncome}`,
+        `${API_BASE_URL}/api/auth/income/other/${editingIncome}`,
         editData,
         {
           headers: { Authorization: `Bearer ${token}` }
@@ -138,7 +138,7 @@ const OtherIncome = () => {
 
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`https://gasmachineserestaurantapp.onrender.com/api/auth/income/other/${id}`, {
+      await axios.delete(`${API_BASE_URL}/api/auth/income/other/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 

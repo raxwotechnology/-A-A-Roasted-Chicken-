@@ -107,7 +107,7 @@ const PrinterSettings = () => {
     if (!window.confirm("Delete this saved printer?")) return;
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`https://gasmachineserestaurantapp.onrender.com/api/auth/printers/${id}`, {
+      await axios.delete(`${API_BASE_URL}/api/auth/printers/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setSavedPrinters(savedPrinters.filter(p => p._id !== id));

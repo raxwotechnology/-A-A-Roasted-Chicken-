@@ -1272,7 +1272,7 @@ const CashierLanding = () => {
                     src={
                     menu.imageUrl.startsWith("https")
                       ? menu.imageUrl
-                      : `https://gasmachineserestaurantapp.onrender.com${menu.imageUrl}`
+                      : `${API_BASE_URL}${menu.imageUrl}`
                     }
                     alt={menu.name}
                     style={{ height: "50px", width:"100%" ,objectFit: "contain" }}

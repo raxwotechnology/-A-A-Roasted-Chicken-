@@ -266,7 +266,7 @@ const ExpensePage = () => {
     try {
       const token = localStorage.getItem("token");
       const url = editingId
-        ? `https://gasmachineserestaurantapp.onrender.com/api/auth/expense/${editingId}`
+        ? `${API_BASE_URL}/api/auth/expense/${editingId}`
         : `${API_BASE_URL}/api/auth/expense/add`;
 
       const method = editingId ? "put" : "post";
@@ -356,7 +356,7 @@ const ExpensePage = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`https://gasmachineserestaurantapp.onrender.com/api/auth/expense/${deleteId}`, {
+      await axios.delete(`${API_BASE_URL}/api/auth/expense/${deleteId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setExpenses(expenses.filter((exp) => exp._id !== deleteId));

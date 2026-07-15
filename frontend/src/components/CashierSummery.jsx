@@ -68,7 +68,7 @@ const CashierSummary = () => {
       });
 
       const res = await axios.get(
-        `https://gasmachineserestaurantapp.onrender.com/api/auth/orders?${params.toString()}&limit=500`,
+        `${API_BASE_URL}/api/auth/orders?${params.toString()}&limit=500`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -88,7 +88,7 @@ const CashierSummary = () => {
   const fetchOtherIncomes = async () => {
     try {
       const res = await axios.get(
-        `https://gasmachineserestaurantapp.onrender.com/api/auth/income/other/by-date?date=${dateFilter}`,
+        `${API_BASE_URL}/api/auth/income/other/by-date?date=${dateFilter}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setOtherIncomes(res.data);
@@ -104,7 +104,7 @@ const CashierSummary = () => {
   const fetchOtherExpenses = async () => {
     try {
       const res = await axios.get(
-        `https://gasmachineserestaurantapp.onrender.com/api/auth/expense/other/by-date?date=${dateFilter}`,
+        `${API_BASE_URL}/api/auth/expense/other/by-date?date=${dateFilter}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setOtherExpenses(res.data);
@@ -129,7 +129,7 @@ const CashierSummary = () => {
       const yesterdayStr = `${yyyy}-${mm}-${dd}`;
 
       const res = await axios.get(
-        `https://gasmachineserestaurantapp.onrender.com/api/auth/cashier/shift-summary/${yesterdayStr}`,
+        `${API_BASE_URL}/api/auth/cashier/shift-summary/${yesterdayStr}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -153,7 +153,7 @@ const CashierSummary = () => {
   const checkExistingSummary = async () => {
     try {
       const res = await axios.get(
-        `https://gasmachineserestaurantapp.onrender.com/api/auth/cashier/shift-summary/${dateFilter}`,
+        `${API_BASE_URL}/api/auth/cashier/shift-summary/${dateFilter}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -286,7 +286,7 @@ const CashierSummary = () => {
     if (!window.confirm("Are you sure you want to delete this cash in record?")) return;
 
     try {
-      await axios.delete(`https://gasmachineserestaurantapp.onrender.com/api/auth/income/other/${id}`, {
+      await axios.delete(`${API_BASE_URL}/api/auth/income/other/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -304,7 +304,7 @@ const CashierSummary = () => {
     if (!window.confirm("Are you sure you want to delete this cash out record?")) return;
 
     try {
-      await axios.delete(`https://gasmachineserestaurantapp.onrender.com/api/auth/expense/other/${id}`, {
+      await axios.delete(`${API_BASE_URL}/api/auth/expense/other/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

@@ -77,7 +77,7 @@ const AdminEmployees = () => {
     if (!window.confirm("Are you sure you want to delete this employee?")) return;
 
     axios
-      .delete(`https://gasmachineserestaurantapp.onrender.com/api/auth/employee/${id}`, {
+      .delete(`${API_BASE_URL}/api/auth/employee/${id}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
       })
       .then(() => {

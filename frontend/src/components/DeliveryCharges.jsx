@@ -77,7 +77,7 @@ const DeliveryCharges = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.delete(
-        `https://gasmachineserestaurantapp.onrender.com/api/auth/delivery-charges/${id}`,
+        `${API_BASE_URL}/api/auth/delivery-charges/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       toast.success("Deleted successfully");

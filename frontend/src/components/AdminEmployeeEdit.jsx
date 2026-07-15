@@ -25,7 +25,7 @@ const AdminEmployeeEdit = () => {
     const fetchEmployee = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get(`https://gasmachineserestaurantapp.onrender.com/api/auth/employee/${id}`, {
+        const res = await axios.get(`${API_BASE_URL}/api/auth/employee/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setFormData(res.data);
@@ -47,7 +47,7 @@ const AdminEmployeeEdit = () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.put(
-        `https://gasmachineserestaurantapp.onrender.com/api/auth/employee/${id}`,
+        `${API_BASE_URL}/api/auth/employee/${id}`,
         formData,
         {
           headers: { Authorization: `Bearer ${token}` }

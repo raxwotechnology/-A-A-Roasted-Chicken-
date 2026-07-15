@@ -104,7 +104,7 @@ const CashierOrderHistory = () => {
 
     try {
       const res = await axios.get(
-        `https://gasmachineserestaurantapp.onrender.com/api/auth/orders?${params.toString()}`,
+        `${API_BASE_URL}/api/auth/orders?${params.toString()}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -141,7 +141,7 @@ const CashierOrderHistory = () => {
     try {
       setExcelProgress(50);
       const res = await axios.get(
-        `https://gasmachineserestaurantapp.onrender.com/api/auth/orders/export/excel?${params.toString()}`,
+        `${API_BASE_URL}/api/auth/orders/export/excel?${params.toString()}`,
         {
           headers: { Authorization: `Bearer ${token}` },
           responseType: 'blob'
@@ -493,7 +493,7 @@ const CashierOrderHistory = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.delete(
-        `https://gasmachineserestaurantapp.onrender.com/api/auth/order/${orderId}`,
+        `${API_BASE_URL}/api/auth/order/${orderId}`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -517,7 +517,7 @@ const CashierOrderHistory = () => {
 
       // Update order status to "Ready"
       await axios.put(
-        `https://gasmachineserestaurantapp.onrender.com/api/auth/order/${orderId}/status`,
+        `${API_BASE_URL}/api/auth/order/${orderId}/status`,
         { status: "Ready" },
         {
           headers: { Authorization: `Bearer ${token}` }

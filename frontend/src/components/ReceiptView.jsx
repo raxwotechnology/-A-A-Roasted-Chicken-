@@ -22,7 +22,7 @@ const ReceiptView = () => {
         const headers = { Authorization: `Bearer ${token}` };
 
         // Fetch Order
-        const orderRes = await axios.get(`https://gasmachineserestaurantapp.onrender.com/api/auth/order/${orderId}`, { headers });
+        const orderRes = await axios.get(`${API_BASE_URL}/api/auth/order/${orderId}`, { headers });
         setOrder(orderRes.data);
 
         // Fetch Restaurant Details

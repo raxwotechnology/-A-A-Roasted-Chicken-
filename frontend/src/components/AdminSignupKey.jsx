@@ -35,7 +35,7 @@ const AdminSignupKey = () => {
   // Delete key
   const deleteKey = async (id) => {
     const token = localStorage.getItem("token");
-    await axios.delete(`https://gasmachineserestaurantapp.onrender.com/api/auth/signup-key/${id}`, {
+    await axios.delete(`${API_BASE_URL}/api/auth/signup-key/${id}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     setKeys(keys.filter((key) => key._id !== id));
