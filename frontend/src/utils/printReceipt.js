@@ -5,7 +5,7 @@ import API_BASE_URL from "../api.js";
 
 /**
  * Prints the given receiptHTML to all printers saved in the backend.
-//  * @param {string} receiptHTML - The HTML string to print
+ * @param {string} receiptHTML - The HTML string to print
  */
 export const printReceiptToBoth = async (receiptHTML) => {
   if (!receiptHTML || typeof receiptHTML !== "string") {
@@ -59,7 +59,11 @@ export const printReceiptToBoth = async (receiptHTML) => {
     for (const printer of savedPrinters) {
       const printerName = printer.name.trim();
       try {
-        const config = qz.configs.create(printerName);
+        const config = qz.configs.create(printerName, {
+          rasterize: true,
+          margins: 0,
+          scaleContent: true
+        });
         await qz.print(config, printData);
         printedSuccessfully.push(printerName);
         toast.success(`✅ Printed to: ${printerName}`);

@@ -67,7 +67,16 @@ const ReceiptModal = ({ order, onClose }) => {
     totalPrice
   } = order;
 
-  const logoSrc = restaurantDetails.logo || LogoImage;
+  const getAbsoluteLogo = (logo) => {
+    if (!logo) return "";
+    if (logo.startsWith("data:") || logo.startsWith("http://") || logo.startsWith("https://")) {
+      return logo;
+    }
+    return window.location.origin + logo;
+  };
+
+  const logoSrc = getAbsoluteLogo(restaurantDetails.logo) || getAbsoluteLogo(LogoImage);
+
 
   // Inside ReceiptModal component
   const generatePrintableHTML = () => {
