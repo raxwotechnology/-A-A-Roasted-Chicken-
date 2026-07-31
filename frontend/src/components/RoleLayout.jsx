@@ -16,6 +16,7 @@ import useRefreshStatus from "../hooks/useRefreshStatus";
 import { FaRedo } from "react-icons/fa";
 import axios from "axios";
 import API_BASE_URL from "../api.js";
+import { updateFavicon } from "../utils/updateFavicon";
 
 const RoleLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -37,19 +38,26 @@ const RoleLayout = () => {
     window.location.reload();
   };
 
-  useEffect(() => {
-    const fetchRestaurantDetails = async () => {
-      try {
-        const res = await axios.get(`${API_BASE_URL}/api/auth/settings/restaurant`);
-        if (res.data) {
-          setRestaurantName(res.data.name || "A&A Roasted Chicken");
-          setRestaurantLogo(res.data.logo || "");
-        }
-      } catch (err) {
-        console.error("Failed to load restaurant settings in sidebar:", err);
+  const fetchRestaurantDetails = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/auth/settings/restaurant`);
+      if (res.data) {
+        setRestaurantName(res.data.name || "A&A Roasted Chicken");
+        const logoUrl = res.data.logo || "";
+        setRestaurantLogo(logoUrl);
+        if (logoUrl) updateFavicon(logoUrl);
       }
-    };
+    } catch (err) {
+      console.error("Failed to load restaurant settings in sidebar:", err);
+    }
+  };
+
+  useEffect(() => {
     fetchRestaurantDetails();
+    window.addEventListener("restaurantSettingsUpdated", fetchRestaurantDetails);
+    return () => {
+      window.removeEventListener("restaurantSettingsUpdated", fetchRestaurantDetails);
+    };
   }, []);
 
   const nameParts = restaurantName.split(" ");
@@ -250,10 +258,10 @@ const RoleLayout = () => {
         >
           <div className="sidebar-header d-flex align-items-center">
             <img
-              src={restaurantLogo || "/logo.jpg"}
+              src={restaurantLogo || "/logo.png"}
               alt="Logo"
-              className="sidebar-logo rounded-circle flex-shrink-0"
-              style={{ objectFit: "cover", width: "40px", height: "40px" }}
+              className="sidebar-logo flex-shrink-0 rounded-2"
+              style={{ objectFit: "contain", maxWidth: isSidebarExpanded ? "140px" : "42px", maxHeight: "42px", width: "auto", height: "auto" }}
             />
             {isSidebarExpanded && (
               <div className="sidebar-brand ms-2">

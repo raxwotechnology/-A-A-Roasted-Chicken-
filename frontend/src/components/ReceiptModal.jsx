@@ -178,9 +178,8 @@ const ReceiptModal = ({ order, onClose }) => {
           </style>
         </head>
         <body>
-        <!-- Logo Section -->
         <div class="text-center mb-2">
-          ${logoSrc ? `<img src="${logoSrc}" alt="Logo" style="width:80px; height:80px; border-radius:40px; display:inline-block;" />` : ''}
+          ${logoSrc ? `<img src="${logoSrc}" alt="Logo" style="max-width:180px; max-height:80px; width:auto; height:auto; object-fit:contain; display:inline-block;" />` : ''}
         </div>
         
         <h3 class="text-center" style="font-size:20px; font-weight:bold; margin:6px 0;">${restaurantDetails.name}</h3>
@@ -317,11 +316,12 @@ const ReceiptModal = ({ order, onClose }) => {
               src={logoSrc}
               alt="Logo"
               style={{
-                width: '80px',
-                height: '80px',
-                borderRadius: '40px',
+                maxWidth: '180px',
+                maxHeight: '80px',
+                width: 'auto',
+                height: 'auto',
                 display: 'inline-block',
-                objectFit: 'cover'
+                objectFit: 'contain'
               }}
             />
           ) : null}

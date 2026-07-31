@@ -4,6 +4,8 @@ import API_BASE_URL from "../api.js";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+import { updateFavicon, notifySettingsUpdated } from "../utils/updateFavicon";
+
 const RestaurantSettings = () => {
   const [name, setName] = useState("A&A Roasted Chicken");
   const [address, setAddress] = useState("337C, Galle Road, Mt. Lavinia");
@@ -26,7 +28,9 @@ const RestaurantSettings = () => {
         setAddress(res.data.address || "337C, Galle Road, Mt. Lavinia");
         setPhone(res.data.phone || "0769 886 887");
         setEmail(res.data.email || "aandafoods2026@gmail.com");
-        setLogo(res.data.logo || "");
+        const currentLogo = res.data.logo || "";
+        setLogo(currentLogo);
+        if (currentLogo) updateFavicon(currentLogo);
       } catch (err) {
         console.error("Failed to load restaurant settings:", err.message);
         toast.error("Failed to load restaurant settings");
@@ -66,6 +70,8 @@ const RestaurantSettings = () => {
         }
       );
 
+      if (logo) updateFavicon(logo);
+      notifySettingsUpdated();
       toast.success("Restaurant settings updated successfully!");
     } catch (err) {
       console.error("Update failed:", err.response?.data || err.message);
@@ -152,14 +158,15 @@ const RestaurantSettings = () => {
               <span className="d-block text-muted mb-2 fw-semibold">Receipt Logo Preview</span>
               <div
                 style={{
-                  width: "120px",
-                  height: "120px",
-                  borderRadius: "50%",
+                  maxWidth: "240px",
+                  maxHeight: "120px",
+                  borderRadius: "12px",
                   border: "2px dashed #ccc",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   margin: "0 auto",
+                  padding: "8px",
                   overflow: "hidden",
                   backgroundColor: "#f8f9fa",
                 }}
@@ -168,7 +175,7 @@ const RestaurantSettings = () => {
                   <img
                     src={logo}
                     alt="Logo Preview"
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    style={{ maxWidth: "100%", maxHeight: "100px", width: "auto", height: "auto", objectFit: "contain" }}
                   />
                 ) : (
                   <span className="text-muted" style={{ fontSize: "12px" }}>No Logo Selected</span>

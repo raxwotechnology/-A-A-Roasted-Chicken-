@@ -65,7 +65,7 @@ const ReceiptView = () => {
           <img
             src={restaurantDetails.logo}
             alt="Logo"
-            style={{ width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover" }}
+            style={{ maxWidth: "180px", maxHeight: "80px", width: "auto", height: "auto", objectFit: "contain" }}
           />
         </div>
       )}

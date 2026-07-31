@@ -87,20 +87,26 @@ const Home = () => {
         }
 
         .logo-ring {
-          width: 110px;
-          height: 110px;
-          border-radius: 50%;
+          max-width: 240px;
+          max-height: 120px;
+          border-radius: 12px;
           overflow: hidden;
-          border: 3px solid #C9A84C;
-          box-shadow: 0 0 0 6px rgba(201,168,76,0.15), 0 8px 32px rgba(0,0,0,0.15);
+          border: 2px solid #C9A84C;
+          box-shadow: 0 0 0 4px rgba(201,168,76,0.15), 0 8px 32px rgba(0,0,0,0.15);
           margin: 0 auto 24px;
-          display: block;
+          padding: 8px 16px;
+          background: rgba(0, 0, 0, 0.7);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
         }
 
         .logo-ring img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
+          max-width: 100%;
+          max-height: 100px;
+          width: auto;
+          height: auto;
+          object-fit: contain;
           display: block;
         }
 
