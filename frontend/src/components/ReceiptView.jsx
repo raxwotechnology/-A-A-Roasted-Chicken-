@@ -7,9 +7,10 @@ const ReceiptView = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [restaurantDetails, setRestaurantDetails] = useState({
-    name: "OAK & IVORY RESTAURANT",
-    address: "No: 5/B/C, Ja- Ela Road, Gampaha.",
-    phone: "071 1635912",
+    name: "A&A Roasted Chicken",
+    address: "337C, Galle Road, Mt. Lavinia",
+    phone: "0769 886 887",
+    email: "aandafoods2026@gmail.com",
     logo: ""
   });
 
@@ -30,9 +31,10 @@ const ReceiptView = () => {
           const restRes = await axios.get(`${API_BASE_URL}/api/auth/settings/restaurant`, { headers });
           if (restRes.data) {
             setRestaurantDetails({
-              name: restRes.data.name || "OAK & IVORY RESTAURANT",
-              address: restRes.data.address || "No: 5/B/C, Ja- Ela Road, Gampaha.",
-              phone: restRes.data.phone || "071 1635912",
+              name: restRes.data.name || "A&A Roasted Chicken",
+              address: restRes.data.address || "337C, Galle Road, Mt. Lavinia",
+              phone: restRes.data.phone || "0769 886 887",
+              email: restRes.data.email || "aandafoods2026@gmail.com",
               logo: restRes.data.logo || ""
             });
           }

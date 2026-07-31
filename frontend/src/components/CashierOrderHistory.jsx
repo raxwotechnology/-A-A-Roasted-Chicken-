@@ -48,9 +48,10 @@ const CashierOrderHistory = () => {
   const ORDERS_PER_PAGE = 50; 
 
   const [restaurantDetails, setRestaurantDetails] = useState({
-    name: "OAK & IVORY RESTAURANT",
-    address: "No: 5/B/C, Ja- Ela Road, Gampaha.",
-    phone: "071 1635912",
+    name: "A&A Roasted Chicken",
+    address: "337C, Galle Road, Mt. Lavinia",
+    phone: "0769 886 887",
+    email: "aandafoods2026@gmail.com",
     logo: ""
   });
 
@@ -63,9 +64,10 @@ const CashierOrderHistory = () => {
         });
         if (res.data) {
           setRestaurantDetails({
-            name: res.data.name || "OAK & IVORY RESTAURANT",
-            address: res.data.address || "No: 5/B/C, Ja- Ela Road, Gampaha.",
-            phone: res.data.phone || "071 1635912",
+            name: res.data.name || "A&A Roasted Chicken",
+            address: res.data.address || "337C, Galle Road, Mt. Lavinia",
+            phone: res.data.phone || "0769 886 887",
+            email: res.data.email || "aandafoods2026@gmail.com",
             logo: res.data.logo || ""
           });
         }
@@ -368,8 +370,8 @@ const CashierOrderHistory = () => {
 
     // Build full HTML
     const nameParts = restaurantDetails.name.split(" ");
-    const restTitleMain = nameParts[0] || "OAK";
-    const restTitleSub = nameParts.slice(1).join(" ") || "IVORY RESTAURANT";
+    const restTitleMain = nameParts[0] || "A&A";
+    const restTitleSub = nameParts.slice(1).join(" ") || "Roasted Chicken";
 
     container.innerHTML = `
       <h3 style="text-align:center; margin:0;"><strong>${restTitleMain}</strong></h3>

@@ -4,15 +4,19 @@ const mongoose = require("mongoose");
 const restaurantSettingSchema = new mongoose.Schema({
   name: {
     type: String,
-    default: "OAK & IVORY RESTAURANT"
+    default: "A&A Roasted Chicken"
   },
   address: {
     type: String,
-    default: "No: 5/B/C, Ja- Ela Road, Gampaha."
+    default: "337C, Galle Road, Mt. Lavinia"
   },
   phone: {
     type: String,
-    default: "071 1635912"
+    default: "0769 886 887"
+  },
+  email: {
+    type: String,
+    default: "aandafoods2026@gmail.com"
   },
   logo: {
     type: String,

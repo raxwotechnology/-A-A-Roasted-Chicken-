@@ -47,12 +47,20 @@ const seed = async () => {
     await db.collection("deliverycharges").deleteMany({});
     await new DeliveryCharge({ amount: 300, isActive: true }).save();
 
+    let base64Logo = "";
+    const fs = require("fs");
+    const logoPath = path.join(__dirname, "../frontend/src/upload/logo.png");
+    if (fs.existsSync(logoPath)) {
+      base64Logo = "data:image/png;base64," + fs.readFileSync(logoPath).toString("base64");
+    }
+
     await db.collection("restaurantsettings").deleteMany({});
     await new RestaurantSetting({
-      name: "OAK & IVORY RESTAURANT",
-      address: "No: 5/B/C, Ja- Ela Road, Gampaha.",
-      phone: "071 1635912",
-      logo: ""
+      name: "A&A Roasted Chicken",
+      address: "337C, Galle Road, Mt. Lavinia",
+      phone: "0769 886 887",
+      email: "aandafoods2026@gmail.com",
+      logo: base64Logo
     }).save();
 
     console.log("✅ Settings seeded (Currency, Service Charge, Delivery Charge, Restaurant Settings)");

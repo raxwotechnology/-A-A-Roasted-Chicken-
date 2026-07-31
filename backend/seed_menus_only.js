@@ -98,9 +98,10 @@ const seed = async () => {
   const restaurantSettingsExists = await RestaurantSetting.findOne({});
   if (!restaurantSettingsExists) {
     await new RestaurantSetting({
-      name: "OAK & IVORY RESTAURANT",
-      address: "No: 5/B/C, Ja- Ela Road, Gampaha.",
-      phone: "071 1635912",
+      name: "A&A Roasted Chicken",
+      address: "337C, Galle Road, Mt. Lavinia",
+      phone: "0769 886 887",
+      email: "aandafoods2026@gmail.com",
       logo: ""
     }).save();
     console.log("Restaurant settings created.");

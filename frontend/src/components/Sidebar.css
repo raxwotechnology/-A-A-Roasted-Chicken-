@@ -650,3 +650,30 @@ h1, h2, h3, h4, h5 { font-family: 'DM Sans', sans-serif; color: var(--text-prima
   background: var(--gold);
   border-radius: 2px;
 }
+
+/* ========== MOBILE RESPONSIVE ENHANCEMENTS ========== */
+@media (max-width: 768px) {
+  .table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .modal-dialog {
+    margin: 0.5rem auto;
+    max-width: 95vw !important;
+  }
+
+  .card-body {
+    padding: 1rem !important;
+  }
+
+  .btn {
+    min-height: 42px;
+  }
+
+  input, select, textarea {
+    font-size: 16px !important; /* Prevents iOS auto-zoom on input focus */
+  }
+}

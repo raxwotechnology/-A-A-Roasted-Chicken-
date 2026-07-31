@@ -7,9 +7,10 @@ exports.getRestaurantSetting = async (req, res) => {
     if (!setting) {
       // Return defaults if none exists
       setting = {
-        name: "OAK & IVORY RESTAURANT",
-        address: "No: 5/B/C, Ja- Ela Road, Gampaha.",
-        phone: "071 1635912",
+        name: "A&A Roasted Chicken",
+        address: "337C, Galle Road, Mt. Lavinia",
+        phone: "0769 886 887",
+        email: "aandafoods2026@gmail.com",
         logo: ""
       };
     }
@@ -20,16 +21,17 @@ exports.getRestaurantSetting = async (req, res) => {
 };
 
 exports.updateRestaurantSetting = async (req, res) => {
-  const { name, address, phone, logo } = req.body;
+  const { name, address, phone, email, logo } = req.body;
 
   try {
     let setting = await RestaurantSetting.findOne({});
     if (!setting) {
-      setting = new RestaurantSetting({ name, address, phone, logo });
+      setting = new RestaurantSetting({ name, address, phone, email, logo });
     } else {
       if (name !== undefined) setting.name = name;
       if (address !== undefined) setting.address = address;
       if (phone !== undefined) setting.phone = phone;
+      if (email !== undefined) setting.email = email;
       if (logo !== undefined) setting.logo = logo;
     }
 

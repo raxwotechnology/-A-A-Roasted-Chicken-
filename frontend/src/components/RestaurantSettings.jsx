@@ -5,9 +5,10 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const RestaurantSettings = () => {
-  const [name, setName] = useState("OAK & IVORY RESTAURANT");
-  const [address, setAddress] = useState("No: 5/B/C, Ja- Ela Road, Gampaha.");
-  const [phone, setPhone] = useState("071 1635912");
+  const [name, setName] = useState("A&A Roasted Chicken");
+  const [address, setAddress] = useState("337C, Galle Road, Mt. Lavinia");
+  const [phone, setPhone] = useState("0769 886 887");
+  const [email, setEmail] = useState("aandafoods2026@gmail.com");
   const [logo, setLogo] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -21,9 +22,10 @@ const RestaurantSettings = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
 
-        setName(res.data.name || "OAK & IVORY RESTAURANT");
-        setAddress(res.data.address || "No: 5/B/C, Ja- Ela Road, Gampaha.");
-        setPhone(res.data.phone || "071 1635912");
+        setName(res.data.name || "A&A Roasted Chicken");
+        setAddress(res.data.address || "337C, Galle Road, Mt. Lavinia");
+        setPhone(res.data.phone || "0769 886 887");
+        setEmail(res.data.email || "aandafoods2026@gmail.com");
         setLogo(res.data.logo || "");
       } catch (err) {
         console.error("Failed to load restaurant settings:", err.message);
@@ -58,7 +60,7 @@ const RestaurantSettings = () => {
       const token = localStorage.getItem("token");
       await axios.put(
         `${API_BASE_URL}/api/auth/settings/restaurant`,
-        { name, address, phone, logo },
+        { name, address, phone, email, logo },
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -96,7 +98,7 @@ const RestaurantSettings = () => {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              placeholder="e.g. OAK & IVORY RESTAURANT"
+              placeholder="e.g. A&A Roasted Chicken"
               className="form-control"
             />
           </div>
@@ -108,7 +110,7 @@ const RestaurantSettings = () => {
               onChange={(e) => setAddress(e.target.value)}
               required
               rows="2"
-              placeholder="e.g. No: 5/B/C, Ja- Ela Road, Gampaha."
+              placeholder="e.g. 337C, Galle Road, Mt. Lavinia"
               className="form-control"
             />
           </div>
@@ -120,7 +122,18 @@ const RestaurantSettings = () => {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               required
-              placeholder="e.g. 071 1635912"
+              placeholder="e.g. 0769 886 887"
+              className="form-control"
+            />
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label fw-semibold">Email Address</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="e.g. aandafoods2026@gmail.com"
               className="form-control"
             />
           </div>

@@ -29,7 +29,7 @@ const RoleLayout = () => {
   const { refreshed, markAsRefreshed } = useRefreshStatus();
   const [openGroups, setOpenGroups] = useState({});
 
-  const [restaurantName, setRestaurantName] = useState("OAK & IVORY RESTAURANT");
+  const [restaurantName, setRestaurantName] = useState("A&A Roasted Chicken");
   const [restaurantLogo, setRestaurantLogo] = useState("");
 
   const handleHardRefresh = async () => {
@@ -42,7 +42,7 @@ const RoleLayout = () => {
       try {
         const res = await axios.get(`${API_BASE_URL}/api/auth/settings/restaurant`);
         if (res.data) {
-          setRestaurantName(res.data.name || "OAK & IVORY RESTAURANT");
+          setRestaurantName(res.data.name || "A&A Roasted Chicken");
           setRestaurantLogo(res.data.logo || "");
         }
       } catch (err) {
@@ -53,8 +53,8 @@ const RoleLayout = () => {
   }, []);
 
   const nameParts = restaurantName.split(" ");
-  const brandName = nameParts[0] || "OAK";
-  const brandSub = nameParts.slice(1).join(" ") || "IVORY RESTAURANT";
+  const brandName = nameParts[0] || "A&A";
+  const brandSub = nameParts.slice(1).join(" ") || "Roasted Chicken";
 
   useEffect(() => {
     const handleResize = () => {

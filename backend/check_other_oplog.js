@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const checkOtherOplog = async () => {
-  const otherUri = "mongodb+srv://admin:g1dmBauXpD9AUkEb@cluster0.anuecid.mongodb.net/local";
+  const otherUri = "mongodb+srv://admin:YjeIAtxM11wFeI0W@cluster0.nuputvl.mongodb.net/local";
   try {
     const conn = await mongoose.createConnection(otherUri).asPromise();
     console.log("Connected to other database local.");

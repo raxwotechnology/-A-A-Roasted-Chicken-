@@ -94,20 +94,22 @@ const runWipe = async () => {
     const restaurantSetting = await RestaurantSetting.findOne({});
     if (!restaurantSetting) {
       await new RestaurantSetting({
-        name: "OAK & IVORY RESTAURANT",
-        address: "No: 5/B/C, Ja- Ela Road, Gampaha.",
-        phone: "071 1635912",
+        name: "A&A Roasted Chicken",
+        address: "337C, Galle Road, Mt. Lavinia",
+        phone: "0769 886 887",
+        email: "aandafoods2026@gmail.com",
         logo: ""
       }).save();
     } else {
-      // Reset name/address/phone to default OAK & IVORY but preserve custom logo if uploaded
-      restaurantSetting.name = "OAK & IVORY RESTAURANT";
-      restaurantSetting.address = "No: 5/B/C, Ja- Ela Road, Gampaha.";
-      restaurantSetting.phone = "071 1635912";
+      // Reset name/address/phone/email to default A&A Roasted Chicken but preserve custom logo if uploaded
+      restaurantSetting.name = "A&A Roasted Chicken";
+      restaurantSetting.address = "337C, Galle Road, Mt. Lavinia";
+      restaurantSetting.phone = "0769 886 887";
+      restaurantSetting.email = "aandafoods2026@gmail.com";
       await restaurantSetting.save();
     }
 
-    console.log(" Settings verified and updated to OAK & IVORY RESTAURANT.");
+    console.log(" Settings verified and updated to A&A Roasted Chicken.");
     console.log("=================================================");
     console.log("🎉 DATABASE CLEANED & LOGINS PRESERVED SUCCESSFULLY!");
     console.log("=================================================");

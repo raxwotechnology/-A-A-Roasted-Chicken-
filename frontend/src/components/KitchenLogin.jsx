@@ -16,7 +16,7 @@ const KitchenLogin = () => {
   const [loading, setLoading] = useState(false);
 
   const [restaurantDetails, setRestaurantDetails] = useState({
-    name: "OAK & IVORY RESTAURANT",
+    name: "A&A Roasted Chicken",
     logo: ""
   });
 
@@ -26,7 +26,7 @@ const KitchenLogin = () => {
         const res = await axios.get(`${API_BASE_URL}/api/auth/settings/restaurant`);
         if (res.data) {
           setRestaurantDetails({
-            name: res.data.name || "OAK & IVORY RESTAURANT",
+            name: res.data.name || "A&A Roasted Chicken",
             logo: res.data.logo || ""
           });
         }
