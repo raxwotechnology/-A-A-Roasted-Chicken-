@@ -1,7 +1,27 @@
 // backend/controllers/menuController.js
 const Menu = require("../models/Menu");
 const path = require("path");
+const axios = require("axios");
+const sharp = require("sharp");
 
+// Helper to convert any external image URL to permanent base64 webp in MongoDB
+async function convertUrlToBase64(url) {
+  if (!url || typeof url !== "string") return null;
+  if (url.startsWith("data:image/")) return url;
+  if (!url.startsWith("http://") && !url.startsWith("https://")) return null;
+
+  try {
+    const res = await axios.get(url, { responseType: "arraybuffer", timeout: 8000 });
+    const buffer = await sharp(res.data)
+      .resize(400, 400, { fit: "cover" })
+      .toFormat("webp", { quality: 75 })
+      .toBuffer();
+    return `data:image/webp;base64,${buffer.toString("base64")}`;
+  } catch (err) {
+    console.warn("Could not download external image URL:", url.substring(0, 60), err.message);
+    return url;
+  }
+}
 
 // Helper function to safely parse numbers
 function parseNumber(value) {
@@ -30,7 +50,8 @@ exports.createMenu = async (req, res) => {
     if (req.fileUrl) {
       imageUrl = req.fileUrl; // From uploadMiddleware (Multer + Sharp compressed local file)
     } else if (providedImageUrl) {
-      imageUrl = providedImageUrl;
+      const permanentImg = await convertUrlToBase64(providedImageUrl);
+      imageUrl = permanentImg || providedImageUrl;
     }
 
     const price = parseNumber(formData.price) || 0;
@@ -98,7 +119,8 @@ exports.updateMenu = async (req, res) => {
   if (req.fileUrl) {
     updateFields.imageUrl = req.fileUrl; // From uploadMiddleware
   } else if (providedImageUrl) {
-    updateFields.imageUrl = providedImageUrl;
+    const permanentImg = await convertUrlToBase64(providedImageUrl);
+    updateFields.imageUrl = permanentImg || providedImageUrl;
   }
 
   try {
