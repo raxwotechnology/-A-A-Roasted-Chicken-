@@ -19,32 +19,31 @@ exports.getAdminSummary = async (req, res) => {
       dateFilter = { date: { $gte: start, $lte: end } };
     }
 
-    // Fetch all data sources
+    // Fetch all data sources (lean & excluding heavy imageUrl fields)
     const [orders, expenses, bills, salaries, otherIncomes, otherExpenses] = await Promise.all([
-      Order.find(orderDateFilter),
-      Expense.find(dateFilter).select("amount"),
-      KitchenBill.find(dateFilter).select("amount"),
-      Salary.find(dateFilter).select("total"),
-      OtherIncome.find(dateFilter).select("amount"),
-      OtherExpense.find(dateFilter).select("amount")
+      Order.find(orderDateFilter).select("-items.imageUrl").lean(),
+      Expense.find(dateFilter).select("amount").lean(),
+      KitchenBill.find(dateFilter).select("amount").lean(),
+      Salary.find(dateFilter).select("total").lean(),
+      OtherIncome.find(dateFilter).select("amount").lean(),
+      OtherExpense.find(dateFilter).select("amount").lean()
     ]);
 
     // ✅ Calculate totals
     
-    const totalOtherIncome = otherIncomes.reduce((sum, i) => sum + i.amount, 0);
-    const totalSupplierExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
-    const totalBills = bills.reduce((sum, b) => sum + b.amount, 0);
-    const totalSalaries = salaries.reduce((sum, s) => sum + s.total, 0);
-    const totalOtherExpenses = otherExpenses.reduce((sum, e) => sum + e.amount, 0);
-    const totalOrdersIncome = orders.reduce((sum, o) => sum + o.totalPrice, 0);
-    const totaldeliveryOrdersIncome = orders.reduce((sum, o) => sum + o.deliveryCharge, 0);
+    const totalOtherIncome = otherIncomes.reduce((sum, i) => sum + (i.amount || 0), 0);
+    const totalSupplierExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+    const totalBills = bills.reduce((sum, b) => sum + (b.amount || 0), 0);
+    const totalSalaries = salaries.reduce((sum, s) => sum + (s.total || 0), 0);
+    const totalOtherExpenses = otherExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+    const totalOrdersIncome = orders.reduce((sum, o) => sum + (o.totalPrice || 0), 0);
+    const totaldeliveryOrdersIncome = orders.reduce((sum, o) => sum + (o.deliveryCharge || 0), 0);
     
     // ✅ Calculate totalOrdersNetIncome: sum of (item.netProfit * item.quantity) for all items in all orders
     const totalOrdersNetIncome = orders.reduce((sum, order) => {
-      const orderNetProfit = order.items.reduce((itemSum, item) => {
-        // Ensure netProfit exists and is a number
+      const orderNetProfit = (order.items || []).reduce((itemSum, item) => {
         const profitPerUnit = item.netProfit || 0;
-        return itemSum + (profitPerUnit * item.quantity);
+        return itemSum + (profitPerUnit * (item.quantity || 1));
       }, 0);
       return sum + orderNetProfit;
     }, 0);
@@ -73,24 +72,15 @@ exports.getAdminSummary = async (req, res) => {
     }, {});
 
     const delayedOrders = orders.filter(order => {
-      // Skip if statusUpdatedAt is not set (shouldn't happen if you always set it)
-      if (!order.statusUpdatedAt) return false;
-
+      if (!order.statusUpdatedAt || !order.createdAt) return false;
       const diffMs = new Date(order.statusUpdatedAt) - new Date(order.createdAt);
       const diffMinutes = diffMs / (1000 * 60);
-      console.log("Diff Minute", diffMinutes);
       return diffMinutes > 30;
-      
     }).length;
 
     const nextDayStatusUpdates = orders.filter(order => {
-
       const created = new Date(order.createdAt);
-      const updated = (!Date(order.statusUpdatedAt)) && order.status !== "Pending" ? new Date(order.statusUpdatedAt) : new Date(order.createdAt);
-        
-      console.log("order.statusupdates", order.invoiceNo,new Date(order.statusUpdatedAt));
-      console.log("Created date and updated", created.getDate(), updated.getDate());
-      // Compare YEAR, MONTH, and DAY (ignore time)
+      const updated = order.statusUpdatedAt && order.status !== "Pending" ? new Date(order.statusUpdatedAt) : new Date(order.createdAt);
       return (
         created.getFullYear() !== updated.getFullYear() ||
         created.getMonth() !== updated.getMonth() ||
@@ -265,45 +255,45 @@ exports.getMonthlyTrend = async (req, res) => {
      const [orders, expenses, bills, salaries, otherIncomes, otherExpenses] = await Promise.all([
       Order.find({
         createdAt: {
-          $gte: new Date(`${selectedYear}-01-01`),
-          $lte: new Date(`${selectedYear}-12-31`)
+          $gte: new Date(`${selectedYear}-01-01T00:00:00.000Z`),
+          $lte: new Date(`${selectedYear}-12-31T23:59:59.999Z`)
         }
-      }).select("totalPrice createdAt"),
+      }).select("totalPrice createdAt").lean(),
 
       Expense.find({
         date: {
-          $gte: new Date(`${selectedYear}-01-01`),
-          $lte: new Date(`${selectedYear}-12-31`)
+          $gte: new Date(`${selectedYear}-01-01T00:00:00.000Z`),
+          $lte: new Date(`${selectedYear}-12-31T23:59:59.999Z`)
         }
-      }).select("amount date"),
+      }).select("amount date").lean(),
 
       KitchenBill.find({
         date: {
-          $gte: new Date(`${selectedYear}-01-01`),
-          $lte: new Date(`${selectedYear}-12-31`)
+          $gte: new Date(`${selectedYear}-01-01T00:00:00.000Z`),
+          $lte: new Date(`${selectedYear}-12-31T23:59:59.999Z`)
         }
-      }).select("amount date"),
+      }).select("amount date").lean(),
 
       Salary.find({
         date: {
-          $gte: new Date(`${selectedYear}-01-01`),
-          $lte: new Date(`${selectedYear}-12-31`)
+          $gte: new Date(`${selectedYear}-01-01T00:00:00.000Z`),
+          $lte: new Date(`${selectedYear}-12-31T23:59:59.999Z`)
         }
-      }).select("total date"),
+      }).select("total date").lean(),
 
       OtherIncome.find({
         date: {
-          $gte: new Date(`${selectedYear}-01-01`),
-          $lte: new Date(`${selectedYear}-12-31`)
+          $gte: new Date(`${selectedYear}-01-01T00:00:00.000Z`),
+          $lte: new Date(`${selectedYear}-12-31T23:59:59.999Z`)
         }
-      }).select("amount date"),
+      }).select("amount date").lean(),
 
       OtherExpense.find({
         date: {
-          $gte: new Date(`${selectedYear}-01-01`),
-          $lte: new Date(`${selectedYear}-12-31`)
+          $gte: new Date(`${selectedYear}-01-01T00:00:00.000Z`),
+          $lte: new Date(`${selectedYear}-12-31T23:59:59.999Z`)
         }
-      }).select("amount date")
+      }).select("amount date").lean()
     ]);
 
     // Helper to group by month

@@ -24,7 +24,15 @@ import {
 } from "../utils/customerDisplay";
 
 const CashierLanding = () => {
-  const [menus, setMenus] = useState([]);
+  // ⚡ Instant Cache initialization for 0ms initial render
+  const [menus, setMenus] = useState(() => {
+    try {
+      const cached = localStorage.getItem("cached_menus");
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
   const [cart, setCart] = useState([]);
   const [customer, setCustomer] = useState({
     phone: "",
@@ -44,16 +52,32 @@ const CashierLanding = () => {
     dineInCharge: 0,
     isActive: false
   });
-  // const [deliveryChargeSettings, setDeliveryChargeSettings] = useState({
-  //   amount: 0,
-  //   isActive: false
-  // });
   const [deliveryPlaces, setDeliveryPlaces] = useState([]); // ✅ new state
   const navigate = useNavigate();
-  const [categories, setCategories] = useState([]);
-  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [categories, setCategories] = useState(() => {
+    try {
+      const cached = localStorage.getItem("cached_menus");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        return [...new Set(parsed.map(m => m.category).filter(Boolean))];
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  });
+  const [loadingCategories, setLoadingCategories] = useState(() => {
+    return !localStorage.getItem("cached_menus");
+  });
   const [sizeFilter, setSizeFilter] = useState(""); // "", "M", or "L"
-  const [menuPopularity, setMenuPopularity] = useState({}); // e.g., { "Pepperoni Pizza": 42, ... }
+  const [menuPopularity, setMenuPopularity] = useState(() => {
+    try {
+      const cached = localStorage.getItem("cached_popularity");
+      return cached ? JSON.parse(cached) : {};
+    } catch {
+      return {};
+    }
+  });
 
   const [numberPadTarget, setNumberPadTarget] = useState(null); // 'phone' or 'tableNo'
   const [showNumberPad, setShowNumberPad] = useState(false);
@@ -64,7 +88,20 @@ const CashierLanding = () => {
 
   const [selectedMenuItem, setSelectedMenuItem] = useState(null);
   const [itemQuantity, setItemQuantity] = useState(0);
-  const [tempStock, setTempStock] = useState({}); // e.g., { "menuId1": 5, "menuId2": 10 }
+  const [tempStock, setTempStock] = useState(() => {
+    try {
+      const cached = localStorage.getItem("cached_menus");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        const stock = {};
+        parsed.forEach(m => { stock[m._id] = m.currentQty; });
+        return stock;
+      }
+      return {};
+    } catch {
+      return {};
+    }
+  });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitLock, setSubmitLock] = useState(false);
@@ -79,21 +116,27 @@ const CashierLanding = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Load menus and service charge
+  // Load menus and auxiliary data
   useEffect(() => {
     fetchMenus();
     fetchServiceCharge();
-    // fetchDeliveryCharge();
     fetchDeliveryPlaces();
-    fetchOrdersAndComputePopularity();
     fetchWaiters();
+
+    // Fetch popularity non-blocking
+    const popTimer = setTimeout(() => {
+      fetchOrdersAndComputePopularity();
+    }, 1000);
 
     // Subscribe to VFD customer display connection status and auto-connect
     const unsubscribe = subscribeCustomerDisplayStatus((connected) => {
       setIsDisplayConnected(connected);
     });
     autoConnectCustomerDisplay();
-    return () => unsubscribe();
+    return () => {
+      clearTimeout(popTimer);
+      unsubscribe();
+    };
   }, []);
 
   // Auto-fill customer name when phone changes
@@ -280,6 +323,10 @@ const CashierLanding = () => {
       });
       setTempStock(initialTempStock);
 
+      try {
+        localStorage.setItem("cached_menus", JSON.stringify(res.data));
+      } catch (e) {}
+
       setLoadingCategories(false);
     } catch (err) {
       console.error("Failed to load menus:", err.message);
@@ -315,7 +362,7 @@ const CashierLanding = () => {
   const fetchOrdersAndComputePopularity = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get(`${API_BASE_URL}/api/auth/orders?limit=500`, {
+      const res = await axios.get(`${API_BASE_URL}/api/auth/orders?limit=100`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -328,16 +375,18 @@ const CashierLanding = () => {
           order.items.forEach(item => {
             const name = item.name;
             if (name) {
-              popularityMap[name] = (popularityMap[name] || 0) + item.quantity;
+              popularityMap[name] = (popularityMap[name] || 0) + (item.quantity || 1);
             }
           });
         }
       });
 
       setMenuPopularity(popularityMap);
+      try {
+        localStorage.setItem("cached_popularity", JSON.stringify(popularityMap));
+      } catch (e) {}
     } catch (err) {
       console.error("Failed to load order history for sorting:", err.message);
-      // Optional: toast.warning("Could not sort by popularity");
     }
   };
 
@@ -1346,6 +1395,8 @@ const CashierLanding = () => {
                 <div key={menu._id} className="col-6 col-sm-4 col-md-4 col-lg-3">
                   <div className="card shadow-sm h-100 border-0">
                   <img
+                    loading="lazy"
+                    decoding="async"
                     src={
                       !menu.imageUrl
                         ? "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'><rect width='100%' height='100%' fill='%23e9ecef'/><text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='%236c757d' font-family='sans-serif' font-size='16'>No Image</text></svg>"

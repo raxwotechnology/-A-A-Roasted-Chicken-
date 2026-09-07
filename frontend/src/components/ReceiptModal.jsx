@@ -79,6 +79,27 @@ const ReceiptModal = ({ order, onClose }) => {
   const dailyNo = order.dailyOrderNo || (order.invoiceNo ? order.invoiceNo.split('-').pop() : '1');
   const orderTypeStr = tableNo > 0 ? `Dine In - Table ${tableNo}` : `Takeaway${order.deliveryType ? ` (${order.deliveryType})` : ''}`;
 
+  const getOrderNote = (ord) => {
+    if (!ord) return "";
+    const parts = [];
+    if (ord.deliveryNote && typeof ord.deliveryNote === "string" && ord.deliveryNote.trim()) {
+      parts.push(ord.deliveryNote.trim());
+    }
+    if (ord.payment?.notes && typeof ord.payment.notes === "string" && ord.payment.notes.trim()) {
+      const pNote = ord.payment.notes.trim();
+      if (!parts.includes(pNote)) {
+        parts.push(pNote);
+      }
+    }
+    if (ord.notes && typeof ord.notes === "string" && ord.notes.trim()) {
+      const oNote = ord.notes.trim();
+      if (!parts.includes(oNote)) {
+        parts.push(oNote);
+      }
+    }
+    return parts.join(" | ");
+  };
+
   // 🧾 1. CUSTOMER BILL TEMPLATE (Full with prices, charges, total)
   const generatePrintableHTML = () => {
     const itemsRows = items.map((item, idx) => `
@@ -112,10 +133,12 @@ const ReceiptModal = ({ order, onClose }) => {
       `;
     }
 
-    let deliveryNoteSection = '';
-    if (order.deliveryCharge > 0 && order.deliveryNote) {
-      deliveryNoteSection = `<p><strong>Delivery Note:</strong><br>${order.deliveryNote}</p>`;
-    }
+    const orderNote = getOrderNote(order);
+    const noteSection = orderNote ? `
+      <div style="margin-top:6px; border-top:1px dashed #000; padding-top:4px;">
+        <p style="margin:2px 0; font-size:13px;"><strong>Note:</strong> ${orderNote}</p>
+      </div>
+    ` : '';
 
     return `
       <!DOCTYPE html>
@@ -225,12 +248,11 @@ const ReceiptModal = ({ order, onClose }) => {
         </table>
 
         <hr />
+        ${noteSection}
         <p class="text-center" style="font-size:15px; font-weight:bold; margin:8px 0 4px 0;">Thank you for your order!</p>
         <p class="text-center" style="font-size:12px; margin:2px 0; color:#555;">Software By: Raxwo (Pvt) Ltd.</p>
         <p class="text-center" style="font-size:12px; margin:2px 0; color:#555;">Contact: 074 357 3333</p>
         <hr />
-
-        ${deliveryNoteSection}
         </body>
       </html>
     `;
@@ -250,9 +272,10 @@ const ReceiptModal = ({ order, onClose }) => {
       </tr>
     `).join('');
 
-    const deliveryNoteSection = order.deliveryNote ? `
+    const orderNote = getOrderNote(order);
+    const kotNoteSection = orderNote ? `
       <div style="margin-top:8px; border-top:1px dashed #000; padding-top:4px; font-size:13px;">
-        <strong>Delivery Note:</strong> ${order.deliveryNote}
+        <strong>Note:</strong> ${orderNote}
       </div>
     ` : '';
 
@@ -330,7 +353,7 @@ const ReceiptModal = ({ order, onClose }) => {
           </table>
 
           <hr />
-          ${deliveryNoteSection}
+          ${kotNoteSection}
           <div class="text-center" style="font-weight:bold; font-size:13px; margin-top:8px;">*** END OF KOT ***</div>
         </body>
       </html>
@@ -562,10 +585,10 @@ const ReceiptModal = ({ order, onClose }) => {
             <p className="text-center mb-1" style={{ fontSize: "12px", color: "#555" }}>Contact: 074 357 3333</p>
             <hr style={{ margin: "8px 0" }}/>
 
-            {order.deliveryCharge > 0 && order.deliveryNote?.trim() && (
-              <div style={{ fontSize: "13px" }}>
-                <strong>Delivery Note:</strong>
-                <div>{order.deliveryNote}</div>
+            {getOrderNote(order) && (
+              <div style={{ fontSize: "13px", marginTop: "6px" }}>
+                <strong>Note:</strong>
+                <div>{getOrderNote(order)}</div>
               </div>
             )}
           </>
@@ -627,9 +650,9 @@ const ReceiptModal = ({ order, onClose }) => {
 
             <hr style={{ margin: "8px 0", borderTop: "2px dashed #000" }}/>
 
-            {order.deliveryNote?.trim() && (
+            {getOrderNote(order) && (
               <div style={{ fontSize: "13px", marginTop: "6px" }}>
-                <strong>Delivery Note:</strong> {order.deliveryNote}
+                <strong>Note:</strong> {getOrderNote(order)}
               </div>
             )}
 

@@ -103,7 +103,8 @@ exports.getShiftSummaries = async (req, res) => {
 
     const summaries = await CashierShiftSummary.find(filter)
       .populate("cashierId", "name email role")
-      .sort({ date: -1 });
+      .sort({ date: -1 })
+      .lean();
 
     res.json(summaries);
   } catch (err) {
@@ -140,10 +141,9 @@ exports.getShiftSummaryByDate = async (req, res) => {
     //   filter.cashierId = req.user.id;
     // }
 
-    const summary = await CashierShiftSummary.findOne(filter).populate(
-      "cashierId",
-      "name email role"
-    );
+    const summary = await CashierShiftSummary.findOne(filter)
+      .populate("cashierId", "name email role")
+      .lean();
 
     if (!summary) {
       return res.status(404).json({ error: "No summary found for this date" });

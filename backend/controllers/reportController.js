@@ -14,8 +14,10 @@ exports.getMonthlyReport = async (req, res) => {
   }
 
   try {
-    const start = new Date(year, month - 1, 1);
-    const end = new Date(year, month - 1, 31);
+    const numYear = parseInt(year);
+    const numMonth = parseInt(month);
+    const start = new Date(numYear, numMonth - 1, 1, 0, 0, 0, 0);
+    const end = new Date(numYear, numMonth, 0, 23, 59, 59, 999);
 
     const [
       orders,
@@ -25,22 +27,24 @@ exports.getMonthlyReport = async (req, res) => {
       otherIncomes,
       otherExpenses
     ] = await Promise.all([
-      Order.find({ createdAt: { $gte: start, $lte: end } }),
-      Expense.find({ date: { $gte: start, $lte: end } }),
-      KitchenBill.find({ date: { $gte: start, $lte: end } }),
-      Salary.find({ date: { $gte: start, $lte: end } }),
-      OtherIncome.find({ date: { $gte: start, $lte: end } }), // ✅ NEW
-      OtherExpense.find({ date: { $gte: start, $lte: end } })  // ✅ NEW
+      Order.find({ createdAt: { $gte: start, $lte: end } }).select("totalPrice createdAt").lean(),
+      Expense.find({ date: { $gte: start, $lte: end } }).select("amount date").lean(),
+      KitchenBill.find({ date: { $gte: start, $lte: end } }).select("amount date").lean(),
+      Salary.find({ date: { $gte: start, $lte: end } }).select("total date").lean(),
+      OtherIncome.find({ date: { $gte: start, $lte: end } }).select("amount date").lean(),
+      OtherExpense.find({ date: { $gte: start, $lte: end } }).select("amount date").lean()
     ]);
-    
 
     // Helper: group by day
     const groupByDay = (data, valueKey = "amount", dateKey = "createdAt") => {
       const result = {};
-      data.forEach((item) => {
-        const date = new Date(item[dateKey]).toISOString().split("T")[0];
-        result[date] = (result[date] || 0) + item[valueKey];
-      });
+      for (let i = 0; i < data.length; i++) {
+        const item = data[i];
+        if (!item[dateKey]) continue;
+        const d = new Date(item[dateKey]);
+        const date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        result[date] = (result[date] || 0) + (item[valueKey] || 0);
+      }
       return result;
     };
 
@@ -48,16 +52,16 @@ exports.getMonthlyReport = async (req, res) => {
     const monthlySupplierExpenses = groupByDay(supplierExpenses, "amount", "date");
     const monthlyBills = groupByDay(kitchenBills, "amount", "date");
     const monthlySalaries = groupByDay(salaries, "total", "date");
-    const monthlyOtherIncome = groupByDay(otherIncomes, "amount", "date"); // ✅ NEW
-    const monthlyOtherExpenses = groupByDay(otherExpenses, "amount", "date"); // ✅ NEW
+    const monthlyOtherIncome = groupByDay(otherIncomes, "amount", "date");
+    const monthlyOtherExpenses = groupByDay(otherExpenses, "amount", "date");
 
     res.json({
       monthlyIncome,
-      monthlyOtherIncome, // ✅ NEW
+      monthlyOtherIncome,
       monthlySupplierExpenses,
       monthlyBills,
       monthlySalaries,
-      monthlyOtherExpenses // ✅ NEW
+      monthlyOtherExpenses
     });
   } catch (err) {
     console.error("Failed to generate report:", err.message);

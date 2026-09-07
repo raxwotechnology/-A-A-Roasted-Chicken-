@@ -123,4 +123,14 @@ const orderSchema = new mongoose.Schema({
   }
 },{ timestamps: true });
 
+// 🚀 High-performance Indexes for Fast Reporting, Summaries & History
+orderSchema.index({ createdAt: -1 });
+orderSchema.index({ createdAt: -1, status: 1 });
+orderSchema.index({ date: -1 });
+orderSchema.index({ status: 1 });
+orderSchema.index({ customerPhone: 1 });
+orderSchema.index({ tableNo: 1, createdAt: -1 });
+orderSchema.index({ cashierId: 1, createdAt: -1 });
+orderSchema.index({ deliveryType: 1, deliveryStatus: 1 });
+
 module.exports = mongoose.model("Order", orderSchema);

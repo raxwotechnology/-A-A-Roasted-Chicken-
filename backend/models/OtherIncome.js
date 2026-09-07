@@ -19,4 +19,6 @@ const otherIncomeSchema = new mongoose.Schema({
   }
 });
 
+otherIncomeSchema.index({ date: -1 });
+
 module.exports = mongoose.model("OtherIncome", otherIncomeSchema);

@@ -350,10 +350,17 @@ const CashierOrderHistory = () => {
 
 
 
-    // Delivery note (if exists)
-    const deliveryNoteSection = order.deliveryCharge > 0 && order.deliveryNote ? `
-      <p><strong>Delivery Note:</strong></p>
-      <p>${order.deliveryNote}</p>
+    // Order Note (if exists)
+    const noteList = [];
+    if (order.deliveryNote && order.deliveryNote.trim()) noteList.push(order.deliveryNote.trim());
+    if (order.payment?.notes && order.payment.notes.trim() && !noteList.includes(order.payment.notes.trim())) noteList.push(order.payment.notes.trim());
+    if (order.notes && order.notes.trim() && !noteList.includes(order.notes.trim())) noteList.push(order.notes.trim());
+    const orderNoteText = noteList.join(" | ");
+
+    const noteSection = orderNoteText ? `
+      <div style="margin-top:6px; border-top:1px dashed #000; padding-top:4px;">
+        <p style="margin:2px 0;"><strong>Note:</strong> ${orderNoteText}</p>
+      </div>
     ` : "";
 
     const getAbsoluteLogo = (logo) => {
@@ -404,12 +411,11 @@ const CashierOrderHistory = () => {
       <h5 style="text-align:right; margin:0;">Total: ${symbol}${totalPrice.toFixed(2)}</h5>
 
       <hr />
+      ${noteSection}
       <p style="text-align:center; margin:8px 0;">Thank you for your order!</p>
       <p style="text-align:center; margin:4px 0; font-size:12px;">SOFTWARE BY: RAXWO (Pvt) Ltd.</p>
       <p style="text-align:center; margin:4px 0 16px; font-size:12px;">CONTACT: 074 357 3333</p>
       <hr />
-
-      ${deliveryNoteSection}
     `;
 
     document.body.appendChild(container);

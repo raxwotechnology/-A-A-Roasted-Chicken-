@@ -13,4 +13,7 @@ const salarySchema = new mongoose.Schema({
   date: { type: Date, default: Date.now }
 });
 
+salarySchema.index({ date: -1 });
+salarySchema.index({ employee: 1, date: -1 });
+
 module.exports = mongoose.model("Salary", salarySchema);

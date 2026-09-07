@@ -2,15 +2,19 @@ const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const cors = require("cors");
+const compression = require("compression");
 const connectDB = require("./config/db"); // Import db.js
 const authRoute = require("./routes/authRoute");
 const path = require("path");
 const app = express();
+
+// 🚀 Enable Gzip/Deflate compression for fast network payload transfer
+app.use(compression());
+
 // Serve static uploads folder
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 dotenv.config();
-
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));

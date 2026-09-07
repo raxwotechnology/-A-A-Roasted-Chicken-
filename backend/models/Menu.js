@@ -51,7 +51,7 @@ const menuSchema = new mongoose.Schema({
   }
 },{ timestamps: true });
 
-// Optional: Add index on name + category if needed later
-// menuSchema.index({ name: 1, category: 1 }, { unique: false });
+menuSchema.index({ category: 1, isActive: 1 });
+menuSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model("Menu", menuSchema);

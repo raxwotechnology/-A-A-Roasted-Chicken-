@@ -118,7 +118,7 @@ exports.createOrder = async (req, res) => {
         name: item.name,
         price: menuItem.price,
         netProfit: netProfitPerUnit,
-        imageUrl: menuItem.imageUrl,
+        imageUrl: (menuItem.imageUrl && !menuItem.imageUrl.startsWith("data:")) ? menuItem.imageUrl : null,
         quantity: item.quantity
       });
     }
@@ -208,7 +208,8 @@ exports.createOrder = async (req, res) => {
       orderType: newOrder.tableNo === "Takeaway" ? `Takeaway (${newOrder.deliveryType || "Pickup"})` : `Dine-in (Table ${newOrder.tableNo})`,
       tableNumber: newOrder.tableNo !== "Takeaway" ? newOrder.tableNo : "",
       createdAt: newOrder.createdAt,
-      items: newOrder.items
+      items: newOrder.items,
+      notes: (newOrder.deliveryNote || newOrder.payment?.notes || "").trim()
     }).catch(err => console.error("KOT auto-print error:", err));
 
     // Update menu stock
@@ -282,10 +283,12 @@ exports.getOrderHistory = async (req, res) => {
   try {
     const totalCount = await Order.countDocuments(query);
     const orders = await Order.find(query)
+      .select("-items.imageUrl")
       .populate("cashierId", "name role")
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(parseInt(limit));
+      .limit(parseInt(limit))
+      .lean();
     
     res.json({
       orders,
@@ -403,7 +406,7 @@ exports.searchCustomers = async (req, res) => {
       ]
     };
     
-    const customers = await Customer.find(query).limit(20).sort({ updatedAt: -1 });
+    const customers = await Customer.find(query).limit(20).sort({ updatedAt: -1 }).lean();
     res.json(customers);
   } catch (err) {
     console.error('Search customers error:', err);
@@ -414,8 +417,6 @@ exports.searchCustomers = async (req, res) => {
 // GET /api/auth/customers-list
 exports.getAllCustomers = async (req, res) => {
   try {
-    // ✅ Use Customer model directly for efficiency
-    // If you need pagination, add page/limit here
     const { page = 1, limit = 50 } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
@@ -423,7 +424,8 @@ exports.getAllCustomers = async (req, res) => {
     const customers = await Customer.find({})
       .sort({ updatedAt: -1 })
       .skip(skip)
-      .limit(parseInt(limit));
+      .limit(parseInt(limit))
+      .lean();
 
     res.json({
       customers,
@@ -439,7 +441,7 @@ exports.getAllCustomers = async (req, res) => {
 
 exports.getOrderById = async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id);
+    const order = await Order.findById(req.params.id).lean();
     if (!order) return res.status(404).json({ error: "Order not found" });
     res.json(order);
   } catch (err) {
@@ -464,10 +466,12 @@ exports.getCashierTakeawayOrders = async (req, res) => {
 
     const totalCount = await Order.countDocuments(query);
     const orders = await Order.find(query)
+      .select("-items.imageUrl")
       .populate("driverId", "name vehicle numberPlate")
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(parseInt(limit));
+      .limit(parseInt(limit))
+      .lean();
 
     res.json({
       orders,

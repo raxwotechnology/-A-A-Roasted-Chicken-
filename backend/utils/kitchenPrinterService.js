@@ -47,6 +47,12 @@ function buildKOTText(order) {
     });
   }
 
+  const orderNote = order.notes || order.deliveryNote || "";
+  if (orderNote && orderNote.trim()) {
+    text += "--------------------------------\n";
+    text += boldOn + `NOTE: ${orderNote.trim()}\n` + boldOff;
+  }
+
   text += "================================\n\n\n\n\n";
   text += cutPaper;
 

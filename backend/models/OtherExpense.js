@@ -19,4 +19,6 @@ const otherExpenseSchema = new mongoose.Schema({
   }
 });
 
+otherExpenseSchema.index({ date: -1 });
+
 module.exports = mongoose.model("OtherExpense", otherExpenseSchema);

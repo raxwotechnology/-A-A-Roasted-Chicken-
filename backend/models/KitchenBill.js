@@ -20,4 +20,6 @@ const kitchenBillSchema = new mongoose.Schema({
   }
 });
 
+kitchenBillSchema.index({ date: -1 });
+
 module.exports = mongoose.model("KitchenBill", kitchenBillSchema);

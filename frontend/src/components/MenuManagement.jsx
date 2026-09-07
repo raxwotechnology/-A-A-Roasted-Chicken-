@@ -8,7 +8,15 @@ import makeAnimated from 'react-select/animated';
 import API_BASE_URL from "../api.js";
 
 const MenuManagement = () => {
-  const [menus, setMenus] = useState([]);
+  // ⚡ Instant Cache initialization for 0ms initial render
+  const [menus, setMenus] = useState(() => {
+    try {
+      const cached = localStorage.getItem("cached_menus");
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  });
   const [newMenu, setNewMenu] = useState({
     name: "",
     description: "",
@@ -29,7 +37,20 @@ const MenuManagement = () => {
   const [restockAmount, setRestockAmount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
-  const [categoryOptions, setCategoryOptions] = useState([]);
+  const [categoryOptions, setCategoryOptions] = useState(() => {
+    try {
+      const cached = localStorage.getItem("cached_menus");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        const uniqueCats = [...new Set(parsed.map(menu => menu.category).filter(Boolean))];
+        const opts = uniqueCats.map(cat => ({ value: cat, label: cat }));
+        return opts.length > 0 ? opts : [{ value: "Main Course", label: "Main Course" }];
+      }
+      return [{ value: "Main Course", label: "Main Course" }];
+    } catch {
+      return [{ value: "Main Course", label: "Main Course" }];
+    }
+  });
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [bulkRestockOpen, setBulkRestockOpen] = useState(false);
@@ -51,6 +72,9 @@ const MenuManagement = () => {
 
       const menuData = res.data;
       setMenus(menuData);
+      try {
+        localStorage.setItem("cached_menus", JSON.stringify(menuData));
+      } catch (e) {}
 
       // Format unique categories as react-select options
       const uniqueCats = [...new Set(menuData.map(menu => menu.category).filter(Boolean))];

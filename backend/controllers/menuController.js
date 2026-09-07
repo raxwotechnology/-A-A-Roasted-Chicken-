@@ -32,7 +32,7 @@ function parseNumber(value) {
 // GET /menus - Get all menus
 exports.getMenus = async (req, res) => {
   try {
-    const menus = await Menu.find({}).sort({ createdAt: -1 });
+    const menus = await Menu.find({}).sort({ createdAt: -1 }).lean();
     res.json(menus);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch menus" });

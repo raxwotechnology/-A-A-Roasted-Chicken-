@@ -22,7 +22,7 @@ const customerSchema = new mongoose.Schema({
   timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' }
 });
 
-// Ensure phone is unique
-// customerSchema.index({ phone: 1 }, { unique: true });
+customerSchema.index({ phone: 1 }, { unique: true });
+customerSchema.index({ updatedAt: -1 });
 
 module.exports = mongoose.model('Customer', customerSchema);
