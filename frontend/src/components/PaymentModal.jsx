@@ -5,11 +5,12 @@ import "react-toastify/dist/ReactToastify.css";
 const PaymentModal = ({ totalAmount, onConfirm, onClose, loading = false }) => {
   const [cash, setCash] = useState(parseFloat(totalAmount) || 0);
   const [card, setCard] = useState(0);
+  const [cardLast4, setCardLast4] = useState("");
   const [bankTransfer, setBankTransfer] = useState(0);
   const [notes, setNotes] = useState("");
   const [numberPadTarget, setNumberPadTarget] = useState(null);
   const [showNumberPad, setShowNumberPad] = useState(false);
-  const [useOtherPaymentMethods, setUseOtherPaymentMethods] = useState(false); // 👈 NEW
+  const [useOtherPaymentMethods, setUseOtherPaymentMethods] = useState(false);
 
   // Reset card & bank when disabling other methods
   const toggleOtherPayments = () => {
@@ -17,6 +18,7 @@ const PaymentModal = ({ totalAmount, onConfirm, onClose, loading = false }) => {
     setUseOtherPaymentMethods(newValue);
     if (!newValue) {
       setCard(0);
+      setCardLast4("");
       setBankTransfer(0);
     }
   };
@@ -34,6 +36,7 @@ const PaymentModal = ({ totalAmount, onConfirm, onClose, loading = false }) => {
     onConfirm({ 
       cash, 
       card: useOtherPaymentMethods ? card : 0, 
+      cardLast4: (useOtherPaymentMethods && card > 0) ? cardLast4.trim().slice(-4) : "",
       bankTransfer: useOtherPaymentMethods ? bankTransfer : 0, 
       totalPaid, 
       changeDue, 
@@ -43,6 +46,12 @@ const PaymentModal = ({ totalAmount, onConfirm, onClose, loading = false }) => {
 
   // Handle manual keyboard input
   const handleInputChange = (field, value) => {
+    if (field === 'cardLast4') {
+      const digits = value.replace(/\D/g, '').slice(0, 4);
+      setCardLast4(digits);
+      return;
+    }
+
     // Allow empty, digits, and one decimal point
     if (value === '' || /^(\d*\.?\d*)$/.test(value)) {
       const numValue = value === '' ? 0 : parseFloat(value);
@@ -55,6 +64,12 @@ const PaymentModal = ({ totalAmount, onConfirm, onClose, loading = false }) => {
   // Number pad handlers
   const handleNumberPadInput = (value) => {
     if (!numberPadTarget) return;
+
+    if (numberPadTarget === 'cardLast4') {
+      if (value === '.') return; // no decimals for card digits
+      setCardLast4(prev => (prev + value).slice(0, 4));
+      return;
+    }
 
     const current = String(
       numberPadTarget === 'cash' ? (cash || 0) :
@@ -82,13 +97,19 @@ const PaymentModal = ({ totalAmount, onConfirm, onClose, loading = false }) => {
   const handleClear = () => {
     if (!numberPadTarget) return;
 
-    if (numberPadTarget === 'cash') setCash(0);
+    if (numberPadTarget === 'cardLast4') setCardLast4("");
+    else if (numberPadTarget === 'cash') setCash(0);
     else if (numberPadTarget === 'card') setCard(0);
     else setBankTransfer(0);
   };
 
   const handleBackspace = () => {
     if (!numberPadTarget) return;
+
+    if (numberPadTarget === 'cardLast4') {
+      setCardLast4(prev => prev.slice(0, -1));
+      return;
+    }
 
     const current = String(
       numberPadTarget === 'cash' ? (cash || 0) :
@@ -150,7 +171,7 @@ const PaymentModal = ({ totalAmount, onConfirm, onClose, loading = false }) => {
               {/* Left: Inputs */}
               <div className="col-md-7">
                 <div className="row g-3">
-                  <div className="col-md-4">
+                  <div className={useOtherPaymentMethods ? "col-md-3" : "col-md-12"}>
                     <label className="form-label">Cash ({symbol})</label>
                     <input
                       type="text"
@@ -164,7 +185,7 @@ const PaymentModal = ({ totalAmount, onConfirm, onClose, loading = false }) => {
                   </div>
                   {useOtherPaymentMethods && (
                     <>
-                      <div className="col-md-4">
+                      <div className="col-md-3">
                         <label className="form-label">Card ({symbol})</label>
                         <input
                           type="text"
@@ -176,7 +197,20 @@ const PaymentModal = ({ totalAmount, onConfirm, onClose, loading = false }) => {
                           placeholder="0.00"
                         />
                       </div>
-                      <div className="col-md-4">
+                      <div className="col-md-3">
+                        <label className="form-label">Card Last 4 Digits</label>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          maxLength="4"
+                          value={cardLast4}
+                          onChange={(e) => handleInputChange('cardLast4', e.target.value)}
+                          onFocus={() => focusField('cardLast4')}
+                          className="form-control text-center"
+                          placeholder="e.g. 1234"
+                        />
+                      </div>
+                      <div className="col-md-3">
                         <label className="form-label">Bank Transfer ({symbol})</label>
                         <input
                           type="text"

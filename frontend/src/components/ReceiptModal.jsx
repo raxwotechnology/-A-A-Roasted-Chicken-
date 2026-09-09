@@ -240,11 +240,35 @@ const ReceiptModal = ({ order, onClose }) => {
 
         <hr />
 
-        <table style="width:100%; border-collapse:collapse; font-size:15px; margin-top:4px;">
-          <tr>
-            <td style="text-align:left; font-weight:bold; padding:4px 0;">Total:</td>
-            <td style="text-align:right; font-weight:bold; padding:4px 0;">${symbol}${(order.totalPrice || 0).toFixed(2)}</td>
+        <table style="width:100%; border-collapse:collapse; font-size:14px; margin-top:4px;">
+          <tr style="font-size:15px; font-weight:bold;">
+            <td style="text-align:left; padding:4px 0;">Total:</td>
+            <td style="text-align:right; padding:4px 0;">${symbol}${(order.totalPrice || 0).toFixed(2)}</td>
           </tr>
+          ${order.payment?.cash > 0 ? `
+          <tr>
+            <td style="text-align:left; padding:2px 0; color:#333;">Cash Paid:</td>
+            <td style="text-align:right; padding:2px 0;">${symbol}${(order.payment.cash || 0).toFixed(2)}</td>
+          </tr>` : ''}
+          ${order.payment?.card > 0 ? `
+          <tr>
+            <td style="text-align:left; padding:2px 0; color:#333;">Card Payment ${order.payment.cardLast4 ? `(**** ${order.payment.cardLast4})` : ''}:</td>
+            <td style="text-align:right; padding:2px 0;">${symbol}${(order.payment.card || 0).toFixed(2)}</td>
+          </tr>` : ''}
+          ${order.payment?.bankTransfer > 0 ? `
+          <tr>
+            <td style="text-align:left; padding:2px 0; color:#333;">Bank Transfer:</td>
+            <td style="text-align:right; padding:2px 0;">${symbol}${(order.payment.bankTransfer || 0).toFixed(2)}</td>
+          </tr>` : ''}
+          ${order.payment ? `
+          <tr style="border-top:1px dashed #666;">
+            <td style="text-align:left; font-weight:bold; padding:3px 0;">Total Paid:</td>
+            <td style="text-align:right; font-weight:bold; padding:3px 0;">${symbol}${((order.payment.totalPaid != null ? order.payment.totalPaid : (order.totalPrice || 0))).toFixed(2)}</td>
+          </tr>
+          <tr>
+            <td style="text-align:left; font-weight:bold; padding:3px 0; font-size:15px;">Balance / Change:</td>
+            <td style="text-align:right; font-weight:bold; padding:3px 0; font-size:15px;">${symbol}${((order.payment.changeDue != null ? Math.max(0, order.payment.changeDue) : 0)).toFixed(2)}</td>
+          </tr>` : ''}
         </table>
 
         <hr />
@@ -579,6 +603,45 @@ const ReceiptModal = ({ order, onClose }) => {
 
             <hr style={{ margin: "8px 0" }}/>
             <h5 className="text-end fs-6 mb-2"><strong>Total: {symbol}{totalPrice?.toFixed(2)}</strong></h5>
+
+            {order.payment && (
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px", margin: "4px 0 8px 0" }}>
+                <tbody>
+                  {order.payment.cash > 0 && (
+                    <tr>
+                      <td style={{ textAlign: "left", padding: "2px 0", color: "#444" }}>Cash Paid:</td>
+                      <td style={{ textAlign: "right", padding: "2px 0" }}>{symbol}{order.payment.cash.toFixed(2)}</td>
+                    </tr>
+                  )}
+                  {order.payment.card > 0 && (
+                    <tr>
+                      <td style={{ textAlign: "left", padding: "2px 0", color: "#444" }}>
+                        Card Payment {order.payment.cardLast4 ? `(**** ${order.payment.cardLast4})` : ''}:
+                      </td>
+                      <td style={{ textAlign: "right", padding: "2px 0" }}>{symbol}{order.payment.card.toFixed(2)}</td>
+                    </tr>
+                  )}
+                  {order.payment.bankTransfer > 0 && (
+                    <tr>
+                      <td style={{ textAlign: "left", padding: "2px 0", color: "#444" }}>Bank Transfer:</td>
+                      <td style={{ textAlign: "right", padding: "2px 0" }}>{symbol}{order.payment.bankTransfer.toFixed(2)}</td>
+                    </tr>
+                  )}
+                  <tr style={{ borderTop: "1px dashed #666", fontWeight: "bold" }}>
+                    <td style={{ textAlign: "left", padding: "3px 0" }}>Total Paid:</td>
+                    <td style={{ textAlign: "right", padding: "3px 0" }}>
+                      {symbol}{(order.payment.totalPaid != null ? order.payment.totalPaid : totalPrice).toFixed(2)}
+                    </td>
+                  </tr>
+                  <tr style={{ fontWeight: "bold", fontSize: "14px" }} className="text-success">
+                    <td style={{ textAlign: "left", padding: "3px 0" }}>Balance (Change):</td>
+                    <td style={{ textAlign: "right", padding: "3px 0" }}>
+                      {symbol}{(order.payment.changeDue != null ? Math.max(0, order.payment.changeDue) : 0).toFixed(2)}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            )}
 
             <p className="text-center mb-1 fw-bold" style={{ fontSize: "15px" }}>Thank you for your order!</p>
             <p className="text-center mb-0" style={{ fontSize: "12px", color: "#555" }}>Software By: Raxwo (Pvt) Ltd.</p>

@@ -378,6 +378,36 @@ const CashierOrderHistory = () => {
     const restTitleMain = nameParts[0] || "A&A";
     const restTitleSub = nameParts.slice(1).join(" ") || "Roasted Chicken";
 
+    const paymentSection = order.payment ? `
+      <table style="width:100%; border-collapse:collapse; font-size:13px; margin:4px 0 8px 0;">
+        <tbody>
+          ${order.payment.cash > 0 ? `
+          <tr>
+            <td style="text-align:left; padding:2px 0;">Cash Paid:</td>
+            <td style="text-align:right; padding:2px 0;">${symbol}${order.payment.cash.toFixed(2)}</td>
+          </tr>` : ''}
+          ${order.payment.card > 0 ? `
+          <tr>
+            <td style="text-align:left; padding:2px 0;">Card Payment ${order.payment.cardLast4 ? `(**** ${order.payment.cardLast4})` : ''}:</td>
+            <td style="text-align:right; padding:2px 0;">${symbol}${order.payment.card.toFixed(2)}</td>
+          </tr>` : ''}
+          ${order.payment.bankTransfer > 0 ? `
+          <tr>
+            <td style="text-align:left; padding:2px 0;">Bank Transfer:</td>
+            <td style="text-align:right; padding:2px 0;">${symbol}${order.payment.bankTransfer.toFixed(2)}</td>
+          </tr>` : ''}
+          <tr style="border-top:1px dashed #666; font-weight:bold;">
+            <td style="text-align:left; padding:3px 0;">Total Paid:</td>
+            <td style="text-align:right; padding:3px 0;">${symbol}${(order.payment.totalPaid != null ? order.payment.totalPaid : totalPrice).toFixed(2)}</td>
+          </tr>
+          <tr style="font-weight:bold; font-size:14px;">
+            <td style="text-align:left; padding:3px 0;">Balance (Change):</td>
+            <td style="text-align:right; padding:3px 0;">${symbol}${(order.payment.changeDue != null ? Math.max(0, order.payment.changeDue) : 0).toFixed(2)}</td>
+          </tr>
+        </tbody>
+      </table>
+    ` : '';
+
     container.innerHTML = `
       <div style="text-align:center; margin-bottom:8px;">
         ${logoSrc ? `<img src="${logoSrc}" alt="Logo" style="max-width:180px; max-height:80px; width:auto; height:auto; object-fit:contain; display:inline-block;" />` : ''}
@@ -409,6 +439,7 @@ const CashierOrderHistory = () => {
 
       <hr />
       <h5 style="text-align:right; margin:0;">Total: ${symbol}${totalPrice.toFixed(2)}</h5>
+      ${paymentSection}
 
       <hr />
       ${noteSection}

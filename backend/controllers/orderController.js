@@ -188,10 +188,11 @@ exports.createOrder = async (req, res) => {
       payment: {
         cash: payment?.cash || 0,
         card: payment?.card || 0,
+        cardLast4: payment?.cardLast4 || "",
         bankTransfer: payment?.bankTransfer || 0,
         totalPaid: (payment?.cash || 0) + (payment?.card || 0) + (payment?.bankTransfer || 0),
         changeDue:
-          (payment?.totalPaid || 0) - finalTotalPrice,
+          (payment?.totalPaid != null ? payment.totalPaid : ((payment?.cash || 0) + (payment?.card || 0) + (payment?.bankTransfer || 0))) - finalTotalPrice,
         notes: payment?.notes || ""
       },
       cashierId: req.user.id,

@@ -90,6 +90,7 @@ const orderSchema = new mongoose.Schema({
   payment: {
     cash: { type: Number, default: 0 },
     card: { type: Number, default: 0 },
+    cardLast4: { type: String, default: "" },
     bankTransfer: { type: Number, default: 0 },
     totalPaid: { type: Number, default: 0 },
     changeDue: { type: Number, default: 0 },

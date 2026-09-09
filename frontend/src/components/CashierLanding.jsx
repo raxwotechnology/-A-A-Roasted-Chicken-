@@ -670,6 +670,7 @@ const CashierLanding = () => {
         payment: {
           cash: paymentData.cash,
           card: paymentData.card,
+          cardLast4: paymentData.cardLast4 || "",
           bankTransfer: paymentData.bankTransfer,
           totalPaid: paymentData.totalPaid,
           changeDue: paymentData.changeDue,
