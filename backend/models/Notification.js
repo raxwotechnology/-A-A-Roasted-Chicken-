@@ -25,4 +25,9 @@ const notificationSchema = new mongoose.Schema({
   }
 });
 
+// 🚀 Compound index: fast lookup by role + isRead (polled every 15s)
+notificationSchema.index({ role: 1, isRead: 1 });
+// Auto-delete notifications older than 7 days to prevent collection bloat
+notificationSchema.index({ createdAt: 1 }, { expireAfterSeconds: 604800 });
+
 module.exports = mongoose.model("Notification", notificationSchema);

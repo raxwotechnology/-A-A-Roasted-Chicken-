@@ -39,7 +39,27 @@ const RoleLayout = () => {
     window.location.reload();
   };
 
-  const fetchRestaurantDetails = async () => {
+  const fetchRestaurantDetails = async (forceRefresh = false) => {
+    const CACHE_KEY    = "cached_restaurant_settings";
+    const CACHE_TS_KEY = "cached_restaurant_settings_at";
+    const TTL = 30 * 60 * 1000; // 30 minutes
+
+    // Serve from cache if fresh and not a forced refresh
+    if (!forceRefresh) {
+      try {
+        const cachedAt = localStorage.getItem(CACHE_TS_KEY);
+        const cached   = localStorage.getItem(CACHE_KEY);
+        if (cachedAt && cached && Date.now() - parseInt(cachedAt) < TTL) {
+          const data = JSON.parse(cached);
+          setRestaurantName(data.name || "A&A Roasted Chicken");
+          const logoUrl = data.logo || "";
+          setRestaurantLogo(logoUrl);
+          if (logoUrl) updateFavicon(logoUrl);
+          return;
+        }
+      } catch {}
+    }
+
     try {
       const res = await axios.get(`${API_BASE_URL}/api/auth/settings/restaurant`);
       if (res.data) {
@@ -47,6 +67,11 @@ const RoleLayout = () => {
         const logoUrl = res.data.logo || "";
         setRestaurantLogo(logoUrl);
         if (logoUrl) updateFavicon(logoUrl);
+        // Save to cache
+        try {
+          localStorage.setItem(CACHE_KEY,    JSON.stringify(res.data));
+          localStorage.setItem(CACHE_TS_KEY, Date.now().toString());
+        } catch {}
       }
     } catch (err) {
       console.error("Failed to load restaurant settings in sidebar:", err);
@@ -55,9 +80,11 @@ const RoleLayout = () => {
 
   useEffect(() => {
     fetchRestaurantDetails();
-    window.addEventListener("restaurantSettingsUpdated", fetchRestaurantDetails);
+    // Force-refresh when admin saves settings
+    const onUpdate = () => fetchRestaurantDetails(true);
+    window.addEventListener("restaurantSettingsUpdated", onUpdate);
     return () => {
-      window.removeEventListener("restaurantSettingsUpdated", fetchRestaurantDetails);
+      window.removeEventListener("restaurantSettingsUpdated", onUpdate);
     };
   }, []);
 

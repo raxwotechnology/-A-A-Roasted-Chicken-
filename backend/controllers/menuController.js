@@ -29,13 +29,27 @@ function parseNumber(value) {
   return isNaN(num) ? undefined : num;
 }
 
-// GET /menus - Get all menus
+// GET /menus - Get all menus (imageUrl excluded for list — use single fetch for editing)
 exports.getMenus = async (req, res) => {
   try {
-    const menus = await Menu.find({}).sort({ createdAt: -1 }).lean();
+    const menus = await Menu.find({})
+      .select("-imageUrl")   // ← exclude heavy base64 image from list
+      .sort({ createdAt: -1 })
+      .lean();
     res.json(menus);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch menus" });
+  }
+};
+
+// GET /menu/:id - Get single menu WITH imageUrl (for edit forms)
+exports.getMenuById = async (req, res) => {
+  try {
+    const menu = await Menu.findById(req.params.id).lean();
+    if (!menu) return res.status(404).json({ error: "Menu not found" });
+    res.json(menu);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch menu item" });
   }
 };
 

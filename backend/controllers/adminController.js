@@ -9,15 +9,20 @@ exports.getAdminSummary = async (req, res) => {
   const { startDate, endDate } = req.query;
 
   try {
-    // Build date filter properly
+    // Always apply a date filter — default to "today" if none provided
+    // This prevents full collection scans as data grows
     let orderDateFilter = {};
     let dateFilter = {};
-    if (startDate && endDate) {
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      orderDateFilter = { createdAt: { $gte: start, $lte: end } };
-      dateFilter = { date: { $gte: start, $lte: end } };
-    }
+
+    const start = startDate
+      ? new Date(startDate)
+      : (() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; })();
+    const end = endDate
+      ? new Date(endDate)
+      : (() => { const d = new Date(); d.setHours(23, 59, 59, 999); return d; })();
+
+    orderDateFilter = { createdAt: { $gte: start, $lte: end } };
+    dateFilter      = { date:      { $gte: start, $lte: end } };
 
     // Fetch all data sources (lean & excluding heavy imageUrl fields)
     const [orders, expenses, bills, salaries, otherIncomes, otherExpenses] = await Promise.all([

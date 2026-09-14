@@ -51,7 +51,11 @@ const useRefreshStatus = () => {
 
   useEffect(() => {
     fetchStatus();
-    const interval = setInterval(fetchStatus, 5000); // Auto-refresh every 30s
+    const interval = setInterval(() => {
+      if (!document.hidden) {
+        fetchStatus();
+      }
+    }, 15000);
     return () => clearInterval(interval);
   }, []);
 

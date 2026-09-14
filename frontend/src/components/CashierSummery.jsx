@@ -68,7 +68,7 @@ const CashierSummary = () => {
       });
 
       const res = await axios.get(
-        `${API_BASE_URL}/api/auth/orders?${params.toString()}&limit=500`,
+        `${API_BASE_URL}/api/auth/orders?${params.toString()}&limit=200`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 

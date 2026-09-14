@@ -97,10 +97,14 @@ const useNotifications = () => {
     }
   };
 
-  // Auto-fetch on mount
+  // Auto-fetch on mount with visibility-aware polling
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 5000); // Auto-refresh every 30s
+    const interval = setInterval(() => {
+      if (!document.hidden) {
+        fetchNotifications();
+      }
+    }, 15000); // Check every 15s when tab is active
     return () => clearInterval(interval);
   }, []);
 

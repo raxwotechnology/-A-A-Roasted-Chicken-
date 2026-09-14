@@ -123,10 +123,18 @@ const CashierLanding = () => {
     fetchDeliveryPlaces();
     fetchWaiters();
 
-    // Fetch popularity non-blocking
+    // Fetch popularity non-blocking — skip if cache is < 1 hour old
     const popTimer = setTimeout(() => {
-      fetchOrdersAndComputePopularity();
-    }, 1000);
+      try {
+        const cachedAt = localStorage.getItem("cached_popularity_at");
+        const ONE_HOUR = 60 * 60 * 1000;
+        if (!cachedAt || Date.now() - parseInt(cachedAt) > ONE_HOUR) {
+          fetchOrdersAndComputePopularity();
+        }
+      } catch {
+        fetchOrdersAndComputePopularity();
+      }
+    }, 1500);
 
     // Subscribe to VFD customer display connection status and auto-connect
     const unsubscribe = subscribeCustomerDisplayStatus((connected) => {
@@ -139,9 +147,9 @@ const CashierLanding = () => {
     };
   }, []);
 
-  // Auto-fill customer name when phone changes
+  // Auto-fill customer name when a complete phone number is entered (single effect, no duplicate)
   useEffect(() => {
-    if (!customer.phone) return;
+    if (customer.phone.length < 10) return;
 
     const timer = setTimeout(async () => {
       try {
@@ -150,37 +158,15 @@ const CashierLanding = () => {
           params: { phone: customer.phone },
           headers: { Authorization: `Bearer ${token}` }
         });
-
         if (res.data?.name && !customer.name) {
           setCustomer((prev) => ({ ...prev, name: res.data.name }));
         }
       } catch (err) {
         console.error("Auto-fill failed:", err.message);
       }
-    }, 800);
+    }, 600);
 
     return () => clearTimeout(timer);
-  }, [customer.phone]);
-
-  useEffect(() => {
-    if (customer.phone.length >= 10) {
-      // Trigger auto-fill as before
-      const timer = setTimeout(async () => {
-        try {
-          const token = localStorage.getItem("token");
-          const res = await axios.get(`${API_BASE_URL}/api/auth/customer`, {
-            params: { phone: customer.phone },
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          if (res.data?.name && !customer.name) {
-            setCustomer((prev) => ({ ...prev, name: res.data.name }));
-          }
-        } catch (err) {
-          console.error("Auto-fill failed:", err.message);
-        }
-      }, 500);
-      return () => clearTimeout(timer);
-    }
   }, [customer.phone]);
 
   const fetchWaiters = async () => {
@@ -384,6 +370,7 @@ const CashierLanding = () => {
       setMenuPopularity(popularityMap);
       try {
         localStorage.setItem("cached_popularity", JSON.stringify(popularityMap));
+        localStorage.setItem("cached_popularity_at", Date.now().toString());
       } catch (e) {}
     } catch (err) {
       console.error("Failed to load order history for sorting:", err.message);

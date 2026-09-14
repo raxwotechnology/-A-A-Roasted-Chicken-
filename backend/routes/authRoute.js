@@ -8,7 +8,7 @@ const { signup, login, getUsers, getSignupKeys, generateSignupKey, deleteSignupK
 const { uploadSingle, processMenuImage } = require("../middleware/uploadMiddleware");
 
 const menuController = require("../controllers/menuController");
-const { getMenus, deleteMenu, restockAllMenus } = require("../controllers/menuController");
+const { getMenus, deleteMenu, restockAllMenus, getMenuById } = require("../controllers/menuController");
 
 const authMiddleware = require("../middleware/authMiddleware");
 const orderController = require("../controllers/orderController");
@@ -85,6 +85,7 @@ router.put("/user/reactivate/:id", authMiddleware(["admin"]), reactivateUser);
 
 // Menu Management
 router.get("/menus", authMiddleware(["admin", "kitchen", "cashier"]), getMenus);
+router.get("/menu/:id", authMiddleware(["admin", "kitchen", "cashier"]), getMenuById);
 router.post("/menu", authMiddleware(["admin", "kitchen", "cashier"]), uploadSingle, processMenuImage, menuController.createMenu);
 router.put("/menu/:id", authMiddleware(["admin", "kitchen", "cashier"]), uploadSingle, processMenuImage, menuController.updateMenu);
 router.delete("/menu/:id", authMiddleware(["admin", "kitchen", "cashier"]), deleteMenu);
