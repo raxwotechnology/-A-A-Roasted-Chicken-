@@ -8,6 +8,11 @@ const authRoute = require("./routes/authRoute");
 const path = require("path");
 const app = express();
 
+const sharp = require("sharp");
+// Optimize Sharp for low-memory container environments (Render 512MB RAM)
+sharp.cache(false);
+sharp.concurrency(1);
+
 // 🚀 Enable Gzip/Deflate compression for fast network payload transfer
 app.use(compression());
 
@@ -47,9 +52,20 @@ connectDB();
 
 app.use("/api/auth", authRoute);
 
-// Health check
+// Health & Memory check
 app.get('/api/health', (req, res) => {
-    res.status(200).json({ status: 'OK', message: 'Server is running' });
+    const memory = process.memoryUsage();
+    res.status(200).json({
+        status: 'OK',
+        message: 'Server is running',
+        uptimeSeconds: Math.floor(process.uptime()),
+        memoryUsageMB: {
+            rss: (memory.rss / 1024 / 1024).toFixed(2),
+            heapTotal: (memory.heapTotal / 1024 / 1024).toFixed(2),
+            heapUsed: (memory.heapUsed / 1024 / 1024).toFixed(2),
+            external: (memory.external / 1024 / 1024).toFixed(2)
+        }
+    });
 });
 
 const PORT = process.env.PORT || 5000;
