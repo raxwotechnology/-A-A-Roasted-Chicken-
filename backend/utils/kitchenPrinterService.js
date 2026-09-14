@@ -75,7 +75,7 @@ async function sendToWifiPrinter(printerConfig, orderData) {
     const targetPort = parseInt(port, 10) || 9100;
     const targetHost = ipAddress.trim();
 
-    socket.setTimeout(8000); // 8 sec timeout
+    socket.setTimeout(2500); // 2.5 sec timeout max
 
     socket.connect(targetPort, targetHost, () => {
       console.log(`[KOT Print] Connected to Wi-Fi Printer "${name}" at ${targetHost}:${targetPort}`);

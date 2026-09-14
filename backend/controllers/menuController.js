@@ -29,11 +29,10 @@ function parseNumber(value) {
   return isNaN(num) ? undefined : num;
 }
 
-// GET /menus - Get all menus (imageUrl excluded for list — use single fetch for editing)
+// GET /menus - Get all menus
 exports.getMenus = async (req, res) => {
   try {
     const menus = await Menu.find({})
-      .select("-imageUrl")   // ← exclude heavy base64 image from list
       .sort({ createdAt: -1 })
       .lean();
     res.json(menus);

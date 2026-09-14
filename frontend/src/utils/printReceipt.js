@@ -44,12 +44,80 @@ export const printHTMLViaBrowser = (html) => {
         if (document.body.contains(iframe)) {
           document.body.removeChild(iframe);
         }
-      }, 1500);
-    }, 400);
+      }, 2000);
+    }, 100);
   } catch (err) {
     console.warn("Browser iframe print failed, falling back to window.print:", err);
     window.print();
   }
+};
+
+/**
+ * Prints Customer Receipt and/or Kitchen KOT to appropriate saved printers.
+ * @param {string} customerHTML - Full receipt HTML for cashier / customer
+ * @param {string} kitchenHTML - KOT HTML with Token #, items & quantities only (NO prices)
+ * @param {string} targetRole - "all" | "cashier" | "kitchen"
+ */
+/**
+ * Cache for saved printers to avoid network latency on every print
+ */
+let cachedPrinters = null;
+let lastPrintersFetch = 0;
+const PRINTER_CACHE_TTL = 60 * 1000; // 1 minute cache
+
+const getSavedPrinters = async (token) => {
+  if (cachedPrinters && (Date.now() - lastPrintersFetch < PRINTER_CACHE_TTL)) {
+    return cachedPrinters;
+  }
+  try {
+    const cached = localStorage.getItem("cached_printers");
+    if (cached && !cachedPrinters) {
+      cachedPrinters = JSON.parse(cached);
+    }
+  } catch (e) {}
+
+  if (token) {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/auth/printers`, {
+        headers: { Authorization: `Bearer ${token}` },
+        timeout: 2000 // 2s timeout max
+      });
+      cachedPrinters = res.data || [];
+      lastPrintersFetch = Date.now();
+      try {
+        localStorage.setItem("cached_printers", JSON.stringify(cachedPrinters));
+      } catch (e) {}
+      return cachedPrinters;
+    } catch (err) {
+      console.warn("Failed to load saved printers, using cache:", err.message);
+    }
+  }
+  return cachedPrinters || [];
+};
+
+/**
+ * Fast QZ Tray connection check with 1.2s timeout so it doesn't hang
+ */
+const connectQZTrayFast = () => {
+  if (typeof qz === "undefined") return Promise.reject(new Error("QZ Tray not installed"));
+  if (qz.websocket && qz.websocket.isActive && qz.websocket.isActive()) {
+    return Promise.resolve();
+  }
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      reject(new Error("QZ Tray connection timeout (1.2s)"));
+    }, 1200);
+
+    qz.websocket.connect({ retries: 0, delay: 0 })
+      .then(() => {
+        clearTimeout(timeout);
+        resolve();
+      })
+      .catch((err) => {
+        clearTimeout(timeout);
+        reject(err);
+      });
+  });
 };
 
 /**
@@ -64,26 +132,13 @@ export const printReceiptToBoth = async (customerHTML, kitchenHTML, targetRole =
     token = localStorage.getItem("token");
   } catch (err) {}
 
-  let savedPrinters = [];
-  if (token) {
-    try {
-      const res = await axios.get(`${API_BASE_URL}/api/auth/printers`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      savedPrinters = res.data || [];
-    } catch (err) {
-      console.warn("Failed to load saved printers:", err);
-    }
-  }
+  const savedPrinters = await getSavedPrinters(token);
 
-  // Connect to QZ Tray if available
+  // Attempt QZ Tray print if available & printers are configured
+  let printedViaQZ = false;
   if (typeof qz !== "undefined" && savedPrinters.length > 0) {
     try {
-      toast.info("🔌 Connecting to QZ Tray...");
-      await qz.websocket.connect();
-
-      const printedSuccessfully = [];
-      const failedPrinters = [];
+      await connectQZTrayFast();
 
       for (const printer of savedPrinters) {
         const printerName = printer.name ? printer.name.trim() : "";
@@ -98,8 +153,6 @@ export const printReceiptToBoth = async (customerHTML, kitchenHTML, targetRole =
         if (targetRole === "cashier" && isKitchen) continue;
         if (targetRole === "kitchen" && !isKitchen) continue;
 
-        // Kitchen printer receives kitchenHTML (KOT with items & qty only)
-        // Cashier printer receives customerHTML (Full Bill with prices & totals)
         const htmlToPrint = isKitchen ? (kitchenHTML || customerHTML) : (customerHTML || kitchenHTML);
         if (!htmlToPrint) continue;
 
@@ -110,32 +163,24 @@ export const printReceiptToBoth = async (customerHTML, kitchenHTML, targetRole =
             scaleContent: true
           });
           await qz.print(config, getPrintData(htmlToPrint));
-          printedSuccessfully.push({ name: printerName, type: isKitchen ? "Kitchen (KOT)" : "Customer Bill" });
-          toast.success(`✅ Printed ${isKitchen ? "Kitchen KOT" : "Customer Bill"} to: ${printerName}`);
+          printedViaQZ = true;
+          toast.success(`✅ Printed to ${printerName}`);
         } catch (err) {
-          failedPrinters.push(printerName);
-          toast.error(`❌ Failed to print to: ${printerName}`);
           console.error(`Print failed for ${printerName}:`, err);
         }
       }
-
-      if (printedSuccessfully.length > 0) {
-        return;
-      }
     } catch (err) {
-      console.warn("QZ Tray error, falling back to browser print:", err);
-    } finally {
-      try {
-        await qz.websocket.disconnect();
-      } catch (e) {}
+      // QZ Tray not running or not responsive — proceed immediately to browser print without delay
+      console.info("QZ Tray not active, using fast browser print fallback");
     }
   }
 
-  // Fallback to browser print
-  const fallbackHTML = targetRole === "kitchen" ? (kitchenHTML || customerHTML) : customerHTML;
-  if (fallbackHTML) {
-    toast.info("🖨️ Opening browser print dialog...");
-    printHTMLViaBrowser(fallbackHTML);
+  // If not printed via QZ Tray, immediately trigger browser print
+  if (!printedViaQZ) {
+    const fallbackHTML = targetRole === "kitchen" ? (kitchenHTML || customerHTML) : customerHTML;
+    if (fallbackHTML) {
+      printHTMLViaBrowser(fallbackHTML);
+    }
   }
 };
 
