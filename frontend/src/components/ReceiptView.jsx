@@ -59,12 +59,13 @@ const ReceiptView = () => {
   if (error) return <div className="alert alert-danger">{error}</div>;
   if (!order) return null;
 
-  const logoSrc = restaurantDetails.logo || LogoImage;
+  const symbol = localStorage.getItem("currencySymbol") || "Rs.";
+  const dailyNo = order.dailyOrderNo != null ? order.dailyOrderNo : (order.invoiceNo ? order.invoiceNo.split('-').pop() : '1');
 
   return (
-    <div style={{ maxWidth: "400px", margin: "auto", padding: "20px", fontFamily: "Calibri, sans-serif" }}>
+    <div style={{ maxWidth: "300px", margin: "auto", padding: "10px", fontFamily: "Calibri, sans-serif" }}>
       {logoSrc && (
-        <div style={{ textAlign: "center", marginBottom: "15px" }}>
+        <div style={{ textAlign: "center", marginBottom: "10px" }}>
           <img
             src={logoSrc}
             alt="Logo"
@@ -72,30 +73,56 @@ const ReceiptView = () => {
           />
         </div>
       )}
-      <h3 className="text-center" style={{ margin: "5px 0" }}><strong>{restaurantDetails.name}</strong></h3>
+      <h3 className="text-center" style={{ margin: "5px 0", fontSize: "20px" }}><strong>{restaurantDetails.name}</strong></h3>
       <p className="text-center" style={{ margin: "2px 0", fontSize: "13px" }}>{restaurantDetails.address}</p>
       <p className="text-center" style={{ margin: "2px 0 10px 0", fontSize: "14px" }}><strong>{restaurantDetails.phone}</strong></p>
       <hr />
+
+      <div style={{ textAlign: "center", fontSize: "18px", fontWeight: "bold", margin: "6px 0", border: "1px dashed #000", padding: "4px 0" }}>
+        DAILY TOKEN #: #{dailyNo}
+      </div>
       
-      <p><strong>Date:</strong> {new Date(order.date).toLocaleString()}</p>
-      <p><strong>Customer:</strong> {order.customerName}</p>
-      <p><strong>Phone:</strong> {order.customerPhone}</p>
-      <p><strong>Table No:</strong> {order.tableNo || "Takeaway"}</p>
+      <table style={{ width: "100%", fontSize: "13px", margin: "6px 0" }}>
+        <tbody>
+          <tr>
+            <td style={{ fontWeight: "bold", width: "90px" }}>Invoice:</td>
+            <td>{order.invoiceNo || "N/A"}</td>
+          </tr>
+          <tr>
+            <td style={{ fontWeight: "bold" }}>Date:</td>
+            <td>{new Date(order.createdAt || order.date || Date.now()).toLocaleString()}</td>
+          </tr>
+          <tr>
+            <td style={{ fontWeight: "bold" }}>Customer:</td>
+            <td>{order.customerName || "Walk-in"}</td>
+          </tr>
+          <tr>
+            <td style={{ fontWeight: "bold" }}>Phone:</td>
+            <td>{order.customerPhone || "N/A"}</td>
+          </tr>
+          <tr>
+            <td style={{ fontWeight: "bold" }}>Table:</td>
+            <td>{order.tableNo > 0 ? `Table ${order.tableNo}` : "Takeaway"}</td>
+          </tr>
+        </tbody>
+      </table>
 
       <hr />
 
-      <ul style={{ listStyle: "none", paddingLeft: 0 }}>
-        {order.items.map((item, idx) => (
-          <li key={idx} style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
-            <span>{item.name} x{item.quantity}</span>
-            <span>${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</span>
-          </li>
-        ))}
-      </ul>
+      <table style={{ width: "100%", fontSize: "13px" }}>
+        <tbody>
+          {order.items.map((item, idx) => (
+            <tr key={idx}>
+              <td style={{ textAlign: "left", padding: "3px 0" }}>{item.name} x{item.quantity}</td>
+              <td style={{ textAlign: "right", padding: "3px 0" }}>{symbol}{((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
       <hr />
-      <h5 className="text-end">Total: ${order.totalPrice?.toFixed(2)}</h5>
-      <p className="text-center mt-4">Thank you for your visit!</p>
+      <h5 style={{ textAlign: "right", fontSize: "16px", fontWeight: "bold" }}>Total: {symbol}{order.totalPrice?.toFixed(2)}</h5>
+      <p style={{ textAlign: "center", marginTop: "12px", fontSize: "13px", fontWeight: "bold" }}>Thank you for your visit!</p>
     </div>
   );
 };

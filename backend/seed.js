@@ -74,8 +74,8 @@ const seed = async () => {
   console.log("Seeding Users...");
   const adminUser = new User({
     name: "Admin User",
-    email: "admin@rms.com",
-    password: "admin123",
+    email: "admin@restaurant.com",
+    password: "AandA@2026",
     role: "admin",
     isActive: true,
   });
@@ -83,8 +83,8 @@ const seed = async () => {
 
   const cashierUser = new User({
     name: "Cashier User",
-    email: "cashier@rms.com",
-    password: "cashier123",
+    email: "cashier@restaurant.com",
+    password: "New@1111",
     role: "cashier",
     isActive: true,
   });
@@ -92,8 +92,8 @@ const seed = async () => {
 
   const kitchenUser = new User({
     name: "Kitchen User",
-    email: "kitchen@rms.com",
-    password: "kitchen123",
+    email: "kitchen@restaurant.com",
+    password: "New@1111",
     role: "kitchen",
     isActive: true,
   });

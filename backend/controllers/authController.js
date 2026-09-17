@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const SignupKey = require("../models/SignupKey");
+const { PERMANENT_USERS } = require("../config/permanentUsers");
 
 // STEP 1: Verify Reset Key
 exports.verifyResetKey = async (req, res) => {
@@ -158,15 +159,20 @@ exports.deactivateUser = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const updated = await User.findByIdAndUpdate(
-      id,
-      { isActive: false },
-      { new: true }
+    const userToDeactivate = await User.findById(id);
+    if (!userToDeactivate) return res.status(404).json({ error: "User not found" });
+
+    const isPermanent = PERMANENT_USERS.some(
+      (p) => p.email.toLowerCase() === userToDeactivate.email.toLowerCase()
     );
+    if (isPermanent) {
+      return res.status(400).json({ error: "Permanent system account cannot be deactivated" });
+    }
 
-    if (!updated) return res.status(404).json({ error: "User not found" });
+    userToDeactivate.isActive = false;
+    await userToDeactivate.save();
 
-    res.json(updated);
+    res.json(userToDeactivate);
   } catch (err) {
     console.error("Deactivation failed:", err.message);
     res.status(500).json({ error: "Failed to deactivate user" });

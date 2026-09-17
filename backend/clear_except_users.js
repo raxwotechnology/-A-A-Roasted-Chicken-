@@ -58,19 +58,10 @@ const runWipe = async () => {
       }
     }
 
-    // Ensure users exist; if none, seed default users
-    const userCount = await User.countDocuments();
-    if (userCount === 0) {
-      const adminUser = new User({ name: "Admin User", email: "admin@restaurant.com", password: "AandA@2026", role: "admin", isActive: true });
-      const cashierUser = new User({ name: "Cashier User", email: "cashier@restaurant.com", password: "New@1111", role: "cashier", isActive: true });
-      const kitchenUser = new User({ name: "Kitchen User", email: "kitchen@restaurant.com", password: "New@1111", role: "kitchen", isActive: true });
-      await adminUser.save();
-      await cashierUser.save();
-      await kitchenUser.save();
-      console.log("Seeded: Default Admin, Cashier, and Kitchen login users.");
-    } else {
-      console.log(`Preserved ${userCount} existing login user(s).`);
-    }
+    // Ensure permanent login users exist and have correct credentials
+    const { ensurePermanentUsers } = require("./config/permanentUsers");
+    await ensurePermanentUsers();
+    console.log("Permanent users (Admin, Cashier, Kitchen) verified and preserved.");
 
     // Ensure default settings exist
     const currencyExists = await CurrencySetting.findOne({});

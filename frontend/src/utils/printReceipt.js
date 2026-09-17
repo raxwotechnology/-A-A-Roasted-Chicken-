@@ -4,6 +4,96 @@ import axios from "axios";
 import API_BASE_URL from "../api.js";
 
 /**
+ * Combines multiple full HTML documents (e.g. Customer Bill + Token Slip)
+ * into a SINGLE valid HTML document with proper print page breaks.
+ */
+export const combinePrintableHTML = (htmlPages = []) => {
+  const validPages = htmlPages.filter(Boolean);
+  if (validPages.length === 0) return "";
+  if (validPages.length === 1) return validPages[0];
+
+  const bodyContents = validPages.map((pageHtml) => {
+    // Extract inner content of <body> if full HTML, else use as-is
+    const bodyMatch = pageHtml.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+    return bodyMatch ? bodyMatch[1] : pageHtml;
+  });
+
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Receipts & Tokens</title>
+        <style>
+          @page {
+            margin: 0;
+            size: auto;
+          }
+          @media print {
+            body {
+              margin: 0;
+              padding: 0;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
+            .slip-page {
+              page-break-after: always !important;
+              break-after: page !important;
+            }
+            .slip-page:last-child {
+              page-break-after: avoid !important;
+              break-after: avoid !important;
+            }
+          }
+          body {
+            font-family: Calibri, Arial, sans-serif;
+            width: 275px;
+            margin: 0 auto;
+            padding: 0;
+            background: #fff;
+            color: #000;
+            line-height: 1.35;
+          }
+          .slip-page {
+            width: 275px;
+            box-sizing: border-box;
+            padding: 8px;
+            margin: 0 auto 24px auto;
+            background: #fff;
+          }
+          .slip-page:last-child {
+            margin-bottom: 0;
+          }
+          hr {
+            border: 0;
+            border-top: 1px dashed #000;
+            margin: 4px 0;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+          }
+          .text-center { text-align: center; }
+          .text-end { text-align: right; }
+          .token-box {
+            text-align: center;
+            font-size: 26px;
+            font-weight: 900;
+            margin: 6px 0;
+            border: 2px solid #000;
+            padding: 6px 0;
+            letter-spacing: 1px;
+          }
+        </style>
+      </head>
+      <body>
+        ${bodyContents.map((content) => `<div class="slip-page">${content}</div>`).join('')}
+      </body>
+    </html>
+  `;
+};
+
+/**
  * Helper to get QZ Tray print data for an HTML string
  */
 const getPrintData = (html) => [{
@@ -17,6 +107,7 @@ const getPrintData = (html) => [{
  * Print HTML directly using a temporary hidden iframe for clean browser printing
  */
 export const printHTMLViaBrowser = (html) => {
+  if (!html) return;
   try {
     const iframe = document.createElement("iframe");
     iframe.style.position = "fixed";
@@ -44,20 +135,14 @@ export const printHTMLViaBrowser = (html) => {
         if (document.body.contains(iframe)) {
           document.body.removeChild(iframe);
         }
-      }, 2000);
-    }, 100);
+      }, 3000);
+    }, 250);
   } catch (err) {
     console.warn("Browser iframe print failed, falling back to window.print:", err);
     window.print();
   }
 };
 
-/**
- * Prints Customer Receipt and/or Kitchen KOT to appropriate saved printers.
- * @param {string} customerHTML - Full receipt HTML for cashier / customer
- * @param {string} kitchenHTML - KOT HTML with Token #, items & quantities only (NO prices)
- * @param {string} targetRole - "all" | "cashier" | "kitchen"
- */
 /**
  * Cache for saved printers to avoid network latency on every print
  */
@@ -148,6 +233,9 @@ export const printReceiptToBoth = async (customerHTML, kitchenHTML, targetRole =
   });
   const savedPrinters = Array.from(uniquePrintersMap.values());
 
+  // Prepare combined slips
+  const cashierCombinedHTML = combinePrintableHTML([customerHTML, tokenSlipHTML]);
+
   // Attempt QZ Tray print if available & printers are configured
   let printedViaQZ = false;
   if (typeof qz !== "undefined" && savedPrinters.length > 0) {
@@ -167,20 +255,16 @@ export const printReceiptToBoth = async (customerHTML, kitchenHTML, targetRole =
 
         try {
           if (!isKitchen) {
-            // Cashier Printer: Print Customer Bill, Token Slip, or Both
+            // Cashier Printer: Print Customer Bill + Token Slip
             if (targetRole === "all" || targetRole === "cashier") {
-              if (customerHTML) {
+              const htmlToPrint = cashierCombinedHTML || customerHTML;
+              if (htmlToPrint) {
                 const config = qz.configs.create(printerName, { rasterize: true, margins: 0, scaleContent: true });
-                await qz.print(config, getPrintData(customerHTML));
+                await qz.print(config, getPrintData(htmlToPrint));
                 printedViaQZ = true;
+                const toastKey = `print-${printerName.toLowerCase().replace(/[^a-z0-9]/g, '_')}-cashier`;
+                toast.success(`✅ Printed to ${printerName}`, { toastId: toastKey });
               }
-              if (tokenSlipHTML) {
-                const config = qz.configs.create(printerName, { rasterize: true, margins: 0, scaleContent: true });
-                await qz.print(config, getPrintData(tokenSlipHTML));
-                printedViaQZ = true;
-              }
-              const toastKey = `print-${printerName.toLowerCase().replace(/[^a-z0-9]/g, '_')}-cashier`;
-              toast.success(`✅ Printed to ${printerName}`, { toastId: toastKey });
             } else if (targetRole === "token" && tokenSlipHTML) {
               const config = qz.configs.create(printerName, { rasterize: true, margins: 0, scaleContent: true });
               await qz.print(config, getPrintData(tokenSlipHTML));
@@ -219,15 +303,7 @@ export const printReceiptToBoth = async (customerHTML, kitchenHTML, targetRole =
     } else if (targetRole === "token") {
       fallbackHTML = tokenSlipHTML || customerHTML;
     } else if (targetRole === "cashier" || targetRole === "all") {
-      if (customerHTML && tokenSlipHTML) {
-        fallbackHTML = `
-          ${customerHTML}
-          <div style="page-break-before: always; break-before: page; margin-top: 20px;"></div>
-          ${tokenSlipHTML}
-        `;
-      } else {
-        fallbackHTML = customerHTML || kitchenHTML;
-      }
+      fallbackHTML = cashierCombinedHTML || customerHTML || kitchenHTML;
     }
 
     if (fallbackHTML) {

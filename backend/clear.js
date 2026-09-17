@@ -65,7 +65,12 @@ const clearAll = async () => {
     await CurrencySetting.deleteMany({});
     await InvoiceCounter.deleteMany({});
     
-    console.log("Database cleared successfully! All collections are now empty.");
+    console.log("Database cleared successfully!");
+    
+    // Ensure permanent login users are recreated
+    const { ensurePermanentUsers } = require("./config/permanentUsers");
+    await ensurePermanentUsers();
+    console.log("Permanent users (Admin, Cashier, Kitchen) recreated & secured.");
   } catch (err) {
     console.error("Error clearing database:", err.message);
   } finally {

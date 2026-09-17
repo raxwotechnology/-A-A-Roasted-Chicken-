@@ -31,9 +31,9 @@ const seed = async () => {
 
     // ===== 1. USERS =====
     await db.collection("users").deleteMany({});
-    const adminUser = new User({ name: "Admin User", email: "admin@restaurant.com", password: "admin123", role: "admin", isActive: true });
-    const cashierUser = new User({ name: "Cashier User", email: "cashier@restaurant.com", password: "cashier123", role: "cashier", isActive: true });
-    const kitchenUser = new User({ name: "Kitchen User", email: "kitchen@restaurant.com", password: "kitchen123", role: "kitchen", isActive: true });
+    const adminUser = new User({ name: "Admin User", email: "admin@restaurant.com", password: "AandA@2026", role: "admin", isActive: true });
+    const cashierUser = new User({ name: "Cashier User", email: "cashier@restaurant.com", password: "New@1111", role: "cashier", isActive: true });
+    const kitchenUser = new User({ name: "Kitchen User", email: "kitchen@restaurant.com", password: "New@1111", role: "kitchen", isActive: true });
     await adminUser.save(); await cashierUser.save(); await kitchenUser.save();
     console.log("✅ Users seeded (Admin, Cashier, Kitchen)");
 
@@ -323,9 +323,9 @@ const seed = async () => {
     console.log("🎉 FULL DEMO DATA SEEDED SUCCESSFULLY!");
     console.log("========================================");
     console.log("Login Credentials:");
-    console.log("  Admin   → admin@restaurant.com   / admin123");
-    console.log("  Cashier → cashier@restaurant.com / cashier123");
-    console.log("  Kitchen → kitchen@restaurant.com / kitchen123");
+    console.log("  Admin   → admin@restaurant.com   / AandA@2026");
+    console.log("  Cashier → cashier@restaurant.com / New@1111");
+    console.log("  Kitchen → kitchen@restaurant.com / New@1111");
     console.log("========================================\n");
 
   } catch (err) {

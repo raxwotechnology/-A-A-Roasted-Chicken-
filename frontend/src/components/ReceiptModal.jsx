@@ -83,7 +83,7 @@ const ReceiptModal = ({ order, onClose }) => {
 
   const logoSrc = getAbsoluteLogo(restaurantDetails.logo) || getAbsoluteLogo(LogoImage) || LogoImage;
   const now = new Date().toLocaleString();
-  const dailyNo = order.dailyOrderNo || (order.invoiceNo ? order.invoiceNo.split('-').pop() : '1');
+  const dailyNo = order.dailyOrderNo != null ? order.dailyOrderNo : (order.invoiceNo ? order.invoiceNo.split('-').pop() : '1');
   const orderTypeStr = tableNo > 0 ? `Dine In - Table ${tableNo}` : `Takeaway${order.deliveryType ? ` (${order.deliveryType})` : ''}`;
 
   const getOrderNote = (ord) => {

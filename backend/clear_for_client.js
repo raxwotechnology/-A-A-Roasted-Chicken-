@@ -27,6 +27,9 @@ const clearAndSeed = async () => {
       }
     }
 
+    const { ensurePermanentUsers } = require("./config/permanentUsers");
+    await ensurePermanentUsers();
+
     console.log("Done! Database is now clean and ready for client use.");
     console.log("Settings, menus, users, suppliers, drivers remain intact.");
   } catch (err) {
