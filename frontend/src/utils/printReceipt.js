@@ -121,18 +121,32 @@ const connectQZTrayFast = () => {
 };
 
 /**
- * Prints Customer Receipt and/or Kitchen KOT to appropriate saved printers.
+ * Prints Customer Receipt, Customer Token Slip, and/or Kitchen KOT to appropriate saved printers.
  * @param {string} customerHTML - Full receipt HTML for cashier / customer
  * @param {string} kitchenHTML - KOT HTML with Token #, items & quantities only (NO prices)
- * @param {string} targetRole - "all" | "cashier" | "kitchen"
+ * @param {string} targetRole - "all" | "cashier" | "kitchen" | "token"
+ * @param {string} tokenSlipHTML - Standalone customer token / order number slip
  */
-export const printReceiptToBoth = async (customerHTML, kitchenHTML, targetRole = "all") => {
+export const printReceiptToBoth = async (customerHTML, kitchenHTML, targetRole = "all", tokenSlipHTML = null) => {
   let token;
   try {
     token = localStorage.getItem("token");
   } catch (err) {}
 
-  const savedPrinters = await getSavedPrinters(token);
+  const rawSavedPrinters = await getSavedPrinters(token);
+
+  // Deduplicate saved printers by name and role
+  const uniquePrintersMap = new Map();
+  (rawSavedPrinters || []).forEach((p) => {
+    const pName = (p.name || "").trim();
+    if (!pName) return;
+    const pRole = (p.role || "").toLowerCase();
+    const key = `${pName.toLowerCase()}_${pRole}`;
+    if (!uniquePrintersMap.has(key)) {
+      uniquePrintersMap.set(key, { ...p, name: pName, role: pRole });
+    }
+  });
+  const savedPrinters = Array.from(uniquePrintersMap.values());
 
   // Attempt QZ Tray print if available & printers are configured
   let printedViaQZ = false;
@@ -141,30 +155,52 @@ export const printReceiptToBoth = async (customerHTML, kitchenHTML, targetRole =
       await connectQZTrayFast();
 
       for (const printer of savedPrinters) {
-        const printerName = printer.name ? printer.name.trim() : "";
+        const printerName = printer.name;
         if (!printerName) continue;
 
-        const role = (printer.role || "").toLowerCase();
+        const role = printer.role || "";
         const isKitchen = role === "kitchen" || 
-          printerName.toLowerCase().includes("kitchen") || 
-          printerName.toLowerCase().includes("kot") ||
-          printerName.toLowerCase().includes("xp-90");
+          (role === "" && (printerName.toLowerCase().includes("kitchen") || printerName.toLowerCase().includes("kot")));
 
-        if (targetRole === "cashier" && isKitchen) continue;
+        if ((targetRole === "cashier" || targetRole === "token") && isKitchen) continue;
         if (targetRole === "kitchen" && !isKitchen) continue;
 
-        const htmlToPrint = isKitchen ? (kitchenHTML || customerHTML) : (customerHTML || kitchenHTML);
-        if (!htmlToPrint) continue;
-
         try {
-          const config = qz.configs.create(printerName, {
-            rasterize: true,
-            margins: 0,
-            scaleContent: true
-          });
-          await qz.print(config, getPrintData(htmlToPrint));
-          printedViaQZ = true;
-          toast.success(`✅ Printed to ${printerName}`);
+          if (!isKitchen) {
+            // Cashier Printer: Print Customer Bill, Token Slip, or Both
+            if (targetRole === "all" || targetRole === "cashier") {
+              if (customerHTML) {
+                const config = qz.configs.create(printerName, { rasterize: true, margins: 0, scaleContent: true });
+                await qz.print(config, getPrintData(customerHTML));
+                printedViaQZ = true;
+              }
+              if (tokenSlipHTML) {
+                const config = qz.configs.create(printerName, { rasterize: true, margins: 0, scaleContent: true });
+                await qz.print(config, getPrintData(tokenSlipHTML));
+                printedViaQZ = true;
+              }
+              const toastKey = `print-${printerName.toLowerCase().replace(/[^a-z0-9]/g, '_')}-cashier`;
+              toast.success(`✅ Printed to ${printerName}`, { toastId: toastKey });
+            } else if (targetRole === "token" && tokenSlipHTML) {
+              const config = qz.configs.create(printerName, { rasterize: true, margins: 0, scaleContent: true });
+              await qz.print(config, getPrintData(tokenSlipHTML));
+              printedViaQZ = true;
+              const toastKey = `print-${printerName.toLowerCase().replace(/[^a-z0-9]/g, '_')}-token`;
+              toast.success(`✅ Printed Token to ${printerName}`, { toastId: toastKey });
+            }
+          } else {
+            // Kitchen Printer: Print KOT
+            if (targetRole === "all" || targetRole === "kitchen") {
+              const htmlToPrint = kitchenHTML || customerHTML;
+              if (htmlToPrint) {
+                const config = qz.configs.create(printerName, { rasterize: true, margins: 0, scaleContent: true });
+                await qz.print(config, getPrintData(htmlToPrint));
+                printedViaQZ = true;
+                const toastKey = `print-${printerName.toLowerCase().replace(/[^a-z0-9]/g, '_')}-kitchen`;
+                toast.success(`✅ Printed to ${printerName}`, { toastId: toastKey });
+              }
+            }
+          }
         } catch (err) {
           console.error(`Print failed for ${printerName}:`, err);
         }
@@ -177,7 +213,23 @@ export const printReceiptToBoth = async (customerHTML, kitchenHTML, targetRole =
 
   // If not printed via QZ Tray, immediately trigger browser print
   if (!printedViaQZ) {
-    const fallbackHTML = targetRole === "kitchen" ? (kitchenHTML || customerHTML) : customerHTML;
+    let fallbackHTML = "";
+    if (targetRole === "kitchen") {
+      fallbackHTML = kitchenHTML || customerHTML;
+    } else if (targetRole === "token") {
+      fallbackHTML = tokenSlipHTML || customerHTML;
+    } else if (targetRole === "cashier" || targetRole === "all") {
+      if (customerHTML && tokenSlipHTML) {
+        fallbackHTML = `
+          ${customerHTML}
+          <div style="page-break-before: always; break-before: page; margin-top: 20px;"></div>
+          ${tokenSlipHTML}
+        `;
+      } else {
+        fallbackHTML = customerHTML || kitchenHTML;
+      }
+    }
+
     if (fallbackHTML) {
       printHTMLViaBrowser(fallbackHTML);
     }
@@ -185,10 +237,17 @@ export const printReceiptToBoth = async (customerHTML, kitchenHTML, targetRole =
 };
 
 /**
- * Shortcut to print ONLY Customer Receipt
+ * Shortcut to print Customer Receipt (+ optional Token Slip)
  */
-export const printCustomerReceipt = async (customerHTML) => {
-  return printReceiptToBoth(customerHTML, null, "cashier");
+export const printCustomerReceipt = async (customerHTML, tokenSlipHTML = null) => {
+  return printReceiptToBoth(customerHTML, null, "cashier", tokenSlipHTML);
+};
+
+/**
+ * Shortcut to print ONLY Customer Token Slip
+ */
+export const printCustomerTokenSlip = async (tokenSlipHTML) => {
+  return printReceiptToBoth(null, null, "token", tokenSlipHTML);
 };
 
 /**

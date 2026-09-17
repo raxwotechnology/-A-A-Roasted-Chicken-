@@ -114,6 +114,7 @@ const PrinterSettings = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
+      localStorage.removeItem("cached_printers");
       fetchSavedPrinters();
       toast.success(`✅ ${selectedRole === "kitchen" ? "Kitchen (KOT)" : "Cashier"} Printer saved successfully!`);
     } catch (err) {
@@ -150,6 +151,7 @@ const PrinterSettings = () => {
       );
 
       setWifiPrinter(prev => ({ ...prev, _id: res.data._id }));
+      localStorage.removeItem("cached_printers");
       fetchSavedPrinters();
       toast.success("✅ Kitchen Wi-Fi Printer configured successfully!");
     } catch (err) {
@@ -183,6 +185,7 @@ const PrinterSettings = () => {
       await axios.delete(`${API_BASE_URL}/api/auth/printers/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      localStorage.removeItem("cached_printers");
       fetchSavedPrinters();
       toast.success("Printer deleted");
     } catch (err) {

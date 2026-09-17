@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import axios from "axios";
-import { printReceiptToBoth, printCustomerReceipt, printKitchenKOT } from "../utils/printReceipt";
+import { printReceiptToBoth, printCustomerReceipt, printCustomerTokenSlip, printKitchenKOT } from "../utils/printReceipt";
 import LogoImage from "../upload/logo.png";
 import API_BASE_URL from "../api.js";
 
@@ -14,7 +14,7 @@ const ReceiptModal = ({ order, onClose }) => {
     email: "aandafoods2026@gmail.com",
     logo: ""
   });
-  const [activeTab, setActiveTab] = useState("bill"); // "bill" | "kot"
+  const [activeTab, setActiveTab] = useState("bill"); // "bill" | "token" | "kot"
 
   useEffect(() => {
     const fetchRestaurantSettings = async () => {
@@ -39,14 +39,21 @@ const ReceiptModal = ({ order, onClose }) => {
     fetchRestaurantSettings();
   }, []);
 
-  // Auto-print both Customer Receipt & Kitchen KOT when modal opens
+  const printedOrderIdRef = React.useRef(null);
+
+  // Auto-print Customer Receipt, Customer Token Slip & Kitchen KOT once when modal opens
   useEffect(() => {
     if (!order) return;
+    const orderKey = order._id || order.invoiceNo || JSON.stringify(order.items);
+    if (printedOrderIdRef.current === orderKey) return;
+
     const timer = setTimeout(() => {
       try {
+        printedOrderIdRef.current = orderKey;
         const fullHTML = generatePrintableHTML();
+        const tokenSlipHTML = generateTokenSlipHTML();
         const kitchenHTML = generateKitchenHTML();
-        printReceiptToBoth(fullHTML, kitchenHTML);
+        printReceiptToBoth(fullHTML, kitchenHTML, "all", tokenSlipHTML);
       } catch (err) {
         console.error("Auto print error:", err);
       }
@@ -384,6 +391,98 @@ const ReceiptModal = ({ order, onClose }) => {
     `;
   };
 
+  // 🎟️ 3. CUSTOMER TOKEN / ORDER SLIP TEMPLATE (Token #, Invoice #, Date/Time, Order Type ONLY)
+  const generateTokenSlipHTML = () => {
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>Customer Order Token</title>
+          <style>
+            body {
+              font-family: Calibri, Arial, sans-serif;
+              width: 275px;
+              margin: 0;
+              padding: 8px;
+              background: #fff;
+              color: #000;
+              line-height: 1.4;
+              box-sizing: border-box;
+            }
+            hr {
+              border: 0;
+              border-top: 1px dashed #000;
+              margin: 6px 0;
+            }
+            .text-center { text-align: center; }
+            .token-box {
+              text-align: center;
+              font-size: 28px;
+              font-weight: 900;
+              margin: 8px 0;
+              border: 2px solid #000;
+              padding: 8px 0;
+              letter-spacing: 1px;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="text-center mb-2">
+            ${logoSrc ? `<img src="${logoSrc}" alt="Logo" style="max-width:180px; max-height:80px; width:auto; height:auto; object-fit:contain; display:inline-block;" />` : ''}
+          </div>
+          
+          <h3 class="text-center" style="font-size:18px; font-weight:bold; margin:4px 0;">${restaurantDetails.name}</h3>
+          <p class="text-center" style="font-size:12px; margin:2px 0;">${restaurantDetails.address}</p>
+          <p class="text-center" style="font-size:13px; font-weight:bold; margin:2px 0;">${restaurantDetails.phone}</p>
+          
+          <hr />
+
+          <div class="text-center" style="font-size:14px; font-weight:bold; letter-spacing:1px; margin-top:4px;">*** CUSTOMER ORDER TOKEN ***</div>
+
+          <div class="token-box">
+            TOKEN #: #${dailyNo}
+          </div>
+
+          <table style="width:100%; border-collapse:collapse; font-size:13px; margin:6px 0;">
+            <tr>
+              <td style="width:90px; font-weight:bold; padding:2px 0; text-align:left;">Invoice No:</td>
+              <td style="padding:2px 0; text-align:left;">${order.invoiceNo || 'N/A'}</td>
+            </tr>
+            <tr>
+              <td style="width:90px; font-weight:bold; padding:2px 0; text-align:left;">Date & Time:</td>
+              <td style="padding:2px 0; text-align:left;">${now}</td>
+            </tr>
+            <tr>
+              <td style="width:90px; font-weight:bold; padding:2px 0; text-align:left;">Order Type:</td>
+              <td style="padding:2px 0; text-align:left; font-weight:bold;">${orderTypeStr}</td>
+            </tr>
+            <tr>
+              <td style="width:90px; font-weight:bold; padding:2px 0; text-align:left;">Customer:</td>
+              <td style="padding:2px 0; text-align:left;">${customerName || 'Walk-in'}</td>
+            </tr>
+            ${customerPhone ? `
+            <tr>
+              <td style="width:90px; font-weight:bold; padding:2px 0; text-align:left;">Phone:</td>
+              <td style="padding:2px 0; text-align:left;">${customerPhone}</td>
+            </tr>` : ''}
+          </table>
+
+          <hr />
+
+          <p class="text-center" style="font-size:14px; font-weight:bold; margin:8px 0 4px 0;">Please keep this slip to collect your order.</p>
+          <p class="text-center" style="font-size:13px; margin:2px 0;">Thank you for dining with us!</p>
+          <p class="text-center" style="font-size:11px; margin:4px 0; color:#555;">Software By: Raxwo (Pvt) Ltd.</p>
+          <hr />
+        </body>
+      </html>
+    `;
+  };
+
   const exportToPDF = () => {
     const input = document.getElementById("receipt-content");
     if (!input) {
@@ -398,7 +497,8 @@ const ReceiptModal = ({ order, onClose }) => {
       const height = (canvas.height * width) / canvas.width;
 
       pdf.addImage(imgData, "PNG", 0, 0, width, height);
-      pdf.save(`${activeTab === "kot" ? "kitchen_kot" : "customer_bill"}_#${dailyNo}.pdf`);
+      const prefix = activeTab === "kot" ? "kitchen_kot" : (activeTab === "token" ? "customer_token" : "customer_bill");
+      pdf.save(`${prefix}_#${dailyNo}.pdf`);
     });
   };
 
@@ -421,7 +521,7 @@ const ReceiptModal = ({ order, onClose }) => {
       }}
     >
       {/* Control Buttons Bar */}
-      <div className="text-center mb-3 d-print-none bg-white p-3 rounded shadow-sm" style={{ maxWidth: "520px", width: "100%" }}>
+      <div className="text-center mb-3 d-print-none bg-white p-3 rounded shadow-sm" style={{ maxWidth: "560px", width: "100%" }}>
         {/* Tab Switcher */}
         <div className="btn-group w-100 mb-3" role="group">
           <button
@@ -429,14 +529,21 @@ const ReceiptModal = ({ order, onClose }) => {
             className={`btn fw-bold ${activeTab === "bill" ? "btn-primary" : "btn-outline-primary"}`}
             onClick={() => setActiveTab("bill")}
           >
-            🧾 Customer Bill (Full)
+            🧾 Customer Bill
+          </button>
+          <button
+            type="button"
+            className={`btn fw-bold ${activeTab === "token" ? "btn-info text-white" : "btn-outline-info text-dark"}`}
+            onClick={() => setActiveTab("token")}
+          >
+            🎟️ Customer Token
           </button>
           <button
             type="button"
             className={`btn fw-bold ${activeTab === "kot" ? "btn-warning" : "btn-outline-warning text-dark"}`}
             onClick={() => setActiveTab("kot")}
           >
-            🍳 Kitchen KOT (Items & Qty Only)
+            🍳 Kitchen KOT
           </button>
         </div>
 
@@ -452,10 +559,30 @@ const ReceiptModal = ({ order, onClose }) => {
             className="btn btn-success btn-sm px-3 fw-bold"
             onClick={() => {
               const fullHTML = generatePrintableHTML();
-              printCustomerReceipt(fullHTML);
+              const tokenSlipHTML = generateTokenSlipHTML();
+              printCustomerReceipt(fullHTML, tokenSlipHTML);
+            }}
+            title="Print Customer Bill and separate Token Slip"
+          >
+            🖨️ Bill + Token
+          </button>
+          <button
+            className="btn btn-outline-success btn-sm px-3"
+            onClick={() => {
+              const fullHTML = generatePrintableHTML();
+              printCustomerReceipt(fullHTML, null);
             }}
           >
-            🖨️ Print Customer Bill
+            🧾 Bill Only
+          </button>
+          <button
+            className="btn btn-info text-white btn-sm px-3 fw-bold"
+            onClick={() => {
+              const tokenSlipHTML = generateTokenSlipHTML();
+              printCustomerTokenSlip(tokenSlipHTML);
+            }}
+          >
+            🎟️ Token Only
           </button>
           <button
             className="btn btn-warning btn-sm px-3 fw-bold text-dark"
@@ -464,17 +591,18 @@ const ReceiptModal = ({ order, onClose }) => {
               printKitchenKOT(kitchenHTML);
             }}
           >
-            🍳 Print Kitchen KOT
+            🍳 Kitchen KOT
           </button>
           <button
             className="btn btn-primary btn-sm px-3 fw-bold"
             onClick={() => {
               const fullHTML = generatePrintableHTML();
+              const tokenSlipHTML = generateTokenSlipHTML();
               const kitchenHTML = generateKitchenHTML();
-              printReceiptToBoth(fullHTML, kitchenHTML);
+              printReceiptToBoth(fullHTML, kitchenHTML, "all", tokenSlipHTML);
             }}
           >
-            📑 Print Both
+            📑 Print All
           </button>
         </div>
       </div>
@@ -654,6 +782,79 @@ const ReceiptModal = ({ order, onClose }) => {
                 <div>{getOrderNote(order)}</div>
               </div>
             )}
+          </>
+        ) : activeTab === "token" ? (
+          /* =================== CUSTOMER TOKEN VIEW =================== */
+          <>
+            <div className="text-center mb-2">
+              {logoSrc ? (
+                <img
+                  src={logoSrc}
+                  alt="Logo"
+                  style={{
+                    maxWidth: '180px',
+                    maxHeight: '80px',
+                    width: 'auto',
+                    height: 'auto',
+                    display: 'inline-block',
+                    objectFit: 'contain'
+                  }}
+                />
+              ) : null}
+            </div>
+            <h3 className="mb-1 fs-5 text-center"><strong>{restaurantDetails.name}</strong></h3>
+            <p className="mb-0 text-center" style={{ fontSize: "13px" }}>{restaurantDetails.address}</p>
+            <p className="mb-2 text-center" style={{ fontSize: "14px" }}><strong>{restaurantDetails.phone}</strong></p>
+            
+            <hr style={{ margin: "8px 0" }}/>
+
+            <div className="text-center fw-bold mb-1 text-muted" style={{ fontSize: "13px", letterSpacing: "1px" }}>
+              *** CUSTOMER ORDER TOKEN ***
+            </div>
+
+            <div className="text-center fw-bold py-2 my-2 bg-light text-dark" style={{ fontSize: "28px", border: "2px solid #000" }}>
+              TOKEN #: #{dailyNo}
+            </div>
+
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px", margin: "6px 0" }}>
+              <tbody>
+                <tr>
+                  <td style={{ width: "90px", fontWeight: "bold", padding: "2px 0" }}>Invoice No:</td>
+                  <td style={{ padding: "2px 0" }}>{order.invoiceNo || 'N/A'}</td>
+                </tr>
+                <tr>
+                  <td style={{ width: "90px", fontWeight: "bold", padding: "2px 0" }}>Date & Time:</td>
+                  <td style={{ padding: "2px 0" }}>{now}</td>
+                </tr>
+                <tr>
+                  <td style={{ width: "90px", fontWeight: "bold", padding: "2px 0" }}>Order Type:</td>
+                  <td style={{ padding: "2px 0", fontWeight: "bold", whiteSpace: "nowrap" }}>{orderTypeStr}</td>
+                </tr>
+                <tr>
+                  <td style={{ width: "90px", fontWeight: "bold", padding: "2px 0" }}>Customer:</td>
+                  <td style={{ padding: "2px 0" }}>{customerName || 'Walk-in'}</td>
+                </tr>
+                {customerPhone && (
+                  <tr>
+                    <td style={{ width: "90px", fontWeight: "bold", padding: "2px 0" }}>Phone:</td>
+                    <td style={{ padding: "2px 0" }}>{customerPhone}</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+
+            <hr style={{ margin: "8px 0" }}/>
+
+            <p className="text-center mb-1 fw-bold" style={{ fontSize: "14px" }}>
+              Please keep this slip to collect your order.
+            </p>
+            <p className="text-center mb-1" style={{ fontSize: "13px" }}>
+              Thank you for dining with us!
+            </p>
+            <p className="text-center mb-0" style={{ fontSize: "11px", color: "#555" }}>
+              Software By: Raxwo (Pvt) Ltd.
+            </p>
+            <hr style={{ margin: "8px 0" }}/>
           </>
         ) : (
           /* =================== KITCHEN KOT VIEW =================== */
