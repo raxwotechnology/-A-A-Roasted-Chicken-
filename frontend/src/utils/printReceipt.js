@@ -103,11 +103,22 @@ const getPrintData = (html) => [{
   data: html
 }];
 
+let isBrowserPrinting = false;
+let lastBrowserPrintTime = 0;
+
 /**
  * Print HTML directly using a temporary hidden iframe for clean browser printing
  */
 export const printHTMLViaBrowser = (html) => {
   if (!html) return;
+  const now = Date.now();
+  if (isBrowserPrinting || (now - lastBrowserPrintTime < 1500)) {
+    console.warn("Print already in progress or debounced, skipping duplicate print");
+    return;
+  }
+  isBrowserPrinting = true;
+  lastBrowserPrintTime = now;
+
   try {
     const iframe = document.createElement("iframe");
     iframe.style.position = "fixed";
@@ -135,11 +146,13 @@ export const printHTMLViaBrowser = (html) => {
         if (document.body.contains(iframe)) {
           document.body.removeChild(iframe);
         }
-      }, 3000);
+        isBrowserPrinting = false;
+      }, 1500);
     }, 250);
   } catch (err) {
     console.warn("Browser iframe print failed, falling back to window.print:", err);
     window.print();
+    isBrowserPrinting = false;
   }
 };
 

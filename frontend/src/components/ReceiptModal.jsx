@@ -6,6 +6,9 @@ import { printReceiptToBoth, printCustomerReceipt, printCustomerTokenSlip, print
 import LogoImage from "../upload/logo.png";
 import API_BASE_URL from "../api.js";
 
+// Global set to track auto-printed order IDs across re-renders
+const autoPrintedOrders = new Set();
+
 const ReceiptModal = ({ order, onClose }) => {
   const [restaurantDetails, setRestaurantDetails] = useState({
     name: "A&A Roasted Chicken",
@@ -44,12 +47,19 @@ const ReceiptModal = ({ order, onClose }) => {
   // Auto-print Customer Receipt, Customer Token Slip & Kitchen KOT once when modal opens
   useEffect(() => {
     if (!order) return;
-    const orderKey = order._id || order.invoiceNo || JSON.stringify(order.items);
-    if (printedOrderIdRef.current === orderKey) return;
+    const orderKey = String(order._id || order.invoiceNo || JSON.stringify(order.items));
+    
+    // Prevent duplicate auto-prints
+    if (printedOrderIdRef.current === orderKey || autoPrintedOrders.has(orderKey)) {
+      return;
+    }
+
+    // Set locks immediately
+    printedOrderIdRef.current = orderKey;
+    autoPrintedOrders.add(orderKey);
 
     const timer = setTimeout(() => {
       try {
-        printedOrderIdRef.current = orderKey;
         const fullHTML = generatePrintableHTML();
         const tokenSlipHTML = generateTokenSlipHTML();
         const kitchenHTML = generateKitchenHTML();
@@ -57,7 +67,8 @@ const ReceiptModal = ({ order, onClose }) => {
       } catch (err) {
         console.error("Auto print error:", err);
       }
-    }, 500);
+    }, 350);
+
     return () => clearTimeout(timer);
   }, [order]);
 
