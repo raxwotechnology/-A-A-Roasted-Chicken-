@@ -246,9 +246,6 @@ export const printReceiptToBoth = async (customerHTML, kitchenHTML, targetRole =
   });
   const savedPrinters = Array.from(uniquePrintersMap.values());
 
-  // Prepare combined slips
-  const cashierCombinedHTML = combinePrintableHTML([customerHTML, tokenSlipHTML]);
-
   // Attempt QZ Tray print if available & printers are configured
   let printedViaQZ = false;
   if (typeof qz !== "undefined" && savedPrinters.length > 0) {
@@ -268,15 +265,22 @@ export const printReceiptToBoth = async (customerHTML, kitchenHTML, targetRole =
 
         try {
           if (!isKitchen) {
-            // Cashier Printer: Print Customer Bill + Token Slip
+            // Cashier Printer: Print Customer Bill FIRST, then Token Slip SEPARATELY
             if (targetRole === "all" || targetRole === "cashier") {
-              const htmlToPrint = cashierCombinedHTML || customerHTML;
-              if (htmlToPrint) {
+              if (customerHTML) {
                 const config = qz.configs.create(printerName, { rasterize: true, margins: 0, scaleContent: true });
-                await qz.print(config, getPrintData(htmlToPrint));
+                await qz.print(config, getPrintData(customerHTML));
                 printedViaQZ = true;
                 const toastKey = `print-${printerName.toLowerCase().replace(/[^a-z0-9]/g, '_')}-cashier`;
-                toast.success(`✅ Printed to ${printerName}`, { toastId: toastKey });
+                toast.success(`✅ Printed Bill to ${printerName}`, { toastId: toastKey });
+              }
+              // Print Token Slip as a SEPARATE job after a short delay
+              if (tokenSlipHTML) {
+                await new Promise(resolve => setTimeout(resolve, 600));
+                const tokenConfig = qz.configs.create(printerName, { rasterize: true, margins: 0, scaleContent: true });
+                await qz.print(tokenConfig, getPrintData(tokenSlipHTML));
+                const tokenToastKey = `print-${printerName.toLowerCase().replace(/[^a-z0-9]/g, '_')}-token`;
+                toast.success(`✅ Printed Token to ${printerName}`, { toastId: tokenToastKey });
               }
             } else if (targetRole === "token" && tokenSlipHTML) {
               const config = qz.configs.create(printerName, { rasterize: true, margins: 0, scaleContent: true });
@@ -308,19 +312,24 @@ export const printReceiptToBoth = async (customerHTML, kitchenHTML, targetRole =
     }
   }
 
-  // If not printed via QZ Tray, immediately trigger browser print
+  // If not printed via QZ Tray, trigger browser print with separate jobs
   if (!printedViaQZ) {
-    let fallbackHTML = "";
     if (targetRole === "kitchen") {
-      fallbackHTML = kitchenHTML || customerHTML;
+      const fallbackHTML = kitchenHTML || customerHTML;
+      if (fallbackHTML) printHTMLViaBrowser(fallbackHTML);
     } else if (targetRole === "token") {
-      fallbackHTML = tokenSlipHTML || customerHTML;
+      if (tokenSlipHTML) printHTMLViaBrowser(tokenSlipHTML);
     } else if (targetRole === "cashier" || targetRole === "all") {
-      fallbackHTML = cashierCombinedHTML || customerHTML || kitchenHTML;
-    }
-
-    if (fallbackHTML) {
-      printHTMLViaBrowser(fallbackHTML);
+      // Print Bill first
+      if (customerHTML) {
+        printHTMLViaBrowser(customerHTML);
+      }
+      // Print Token Slip separately after browser print dialog closes (estimated ~2s)
+      if (tokenSlipHTML) {
+        setTimeout(() => {
+          printHTMLViaBrowser(tokenSlipHTML);
+        }, 2000);
+      }
     }
   }
 };
