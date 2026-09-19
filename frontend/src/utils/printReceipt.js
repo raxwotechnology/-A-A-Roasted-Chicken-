@@ -107,6 +107,19 @@ let isBrowserPrinting = false;
 let lastBrowserPrintTime = 0;
 
 /**
+ * Reset all module-level print state.
+ * Call this on logout so the next login session starts fresh
+ * and does NOT produce duplicate prints.
+ */
+export const resetPrintState = () => {
+  isBrowserPrinting = false;
+  lastBrowserPrintTime = 0;
+  cachedPrinters = null;
+  lastPrintersFetch = 0;
+  try { localStorage.removeItem("cached_printers"); } catch (e) {}
+};
+
+/**
  * Print HTML directly using a temporary hidden iframe for clean browser printing
  */
 export const printHTMLViaBrowser = (html) => {
@@ -233,18 +246,21 @@ export const printReceiptToBoth = async (customerHTML, kitchenHTML, targetRole =
 
   const rawSavedPrinters = await getSavedPrinters(token);
 
-  // Deduplicate saved printers by name and role
+  // Deduplicate saved printers by name only — the same physical printer
+  // must never print the same job twice even if it was registered under
+  // multiple roles (e.g. both "" and "cashier").
   const uniquePrintersMap = new Map();
   (rawSavedPrinters || []).forEach((p) => {
     const pName = (p.name || "").trim();
     if (!pName) return;
     const pRole = (p.role || "").toLowerCase();
-    const key = `${pName.toLowerCase()}_${pRole}`;
+    const key = pName.toLowerCase(); // name-only key prevents duplicate physical printers
     if (!uniquePrintersMap.has(key)) {
       uniquePrintersMap.set(key, { ...p, name: pName, role: pRole });
     }
   });
   const savedPrinters = Array.from(uniquePrintersMap.values());
+
 
   // Attempt QZ Tray print if available & printers are configured
   let printedViaQZ = false;

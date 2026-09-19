@@ -1,6 +1,9 @@
 // src/components/AuthProvider.jsx
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { resetPrintState } from "../utils/printReceipt";
+import { clearAutoPrintedOrders } from "./ReceiptModal";
+
 
 export const AuthContext = createContext();
 
@@ -47,9 +50,14 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem("token");
+    // Clear print caches so the next login session starts fresh
+    // (prevents duplicate receipt prints on first order after re-login)
+    resetPrintState();
+    clearAutoPrintedOrders();
     setUser(null);
     navigate("/", { replace: true });
   };
+
 
   return (
     <AuthContext.Provider value={{ user, login, logout }}>

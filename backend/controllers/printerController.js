@@ -13,7 +13,9 @@ exports.getPrinters = async (req, res) => {
     const duplicateIds = [];
 
     for (const p of printers) {
-      const key = `${(p.name || "").trim().toLowerCase()}_${(p.role || "").toLowerCase()}`;
+      // Deduplicate by name only — same physical printer must not appear twice
+      // regardless of which role label it was saved under
+      const key = (p.name || "").trim().toLowerCase();
       if (seen.has(key)) {
         duplicateIds.push(p._id);
       } else {
@@ -21,6 +23,7 @@ exports.getPrinters = async (req, res) => {
         uniquePrinters.push(p);
       }
     }
+
 
     // Clean up duplicate records in background
     if (duplicateIds.length > 0) {

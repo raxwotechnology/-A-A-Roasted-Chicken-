@@ -9,6 +9,10 @@ import API_BASE_URL from "../api.js";
 // Global set to track auto-printed order IDs across re-renders
 const autoPrintedOrders = new Set();
 
+/** Call on logout so the first order after re-login auto-prints correctly */
+export const clearAutoPrintedOrders = () => autoPrintedOrders.clear();
+
+
 const ReceiptModal = ({ order, onClose }) => {
   const [restaurantDetails, setRestaurantDetails] = useState({
     name: "A&A Roasted Chicken",
