@@ -22,6 +22,7 @@ const ReceiptModal = ({ order, onClose }) => {
     logo: ""
   });
   const [activeTab, setActiveTab] = useState("bill"); // "bill" | "token" | "kot"
+  const [isPrinting, setIsPrinting] = useState(false);
 
   useEffect(() => {
     const fetchRestaurantSettings = async () => {
@@ -67,7 +68,7 @@ const ReceiptModal = ({ order, onClose }) => {
         const fullHTML = generatePrintableHTML();
         const tokenSlipHTML = generateTokenSlipHTML();
         const kitchenHTML = generateKitchenHTML();
-        printReceiptToBoth(fullHTML, kitchenHTML, "all", tokenSlipHTML);
+        printReceiptToBoth(fullHTML, kitchenHTML, "all", tokenSlipHTML, orderKey);
       } catch (err) {
         console.error("Auto print error:", err);
       }
@@ -78,6 +79,7 @@ const ReceiptModal = ({ order, onClose }) => {
 
   if (!order) return null;
 
+  const orderKey = String(order._id || order.invoiceNo || "");
   const symbol = localStorage.getItem("currencySymbol") || "Rs.";
 
   const {
@@ -572,52 +574,87 @@ const ReceiptModal = ({ order, onClose }) => {
           </button>
           <button
             className="btn btn-success btn-sm px-3 fw-bold"
+            disabled={isPrinting}
             onClick={() => {
-              const fullHTML = generatePrintableHTML();
-              const tokenSlipHTML = generateTokenSlipHTML();
-              printCustomerReceipt(fullHTML, tokenSlipHTML);
+              if (isPrinting) return;
+              setIsPrinting(true);
+              try {
+                const fullHTML = generatePrintableHTML();
+                const tokenSlipHTML = generateTokenSlipHTML();
+                printCustomerReceipt(fullHTML, tokenSlipHTML, `${orderKey}-manual-customer`);
+              } finally {
+                setTimeout(() => setIsPrinting(false), 2500);
+              }
             }}
             title="Print Customer Bill and separate Token Slip"
           >
-            🖨️ Bill + Token
+            🖨️ {isPrinting ? "Printing..." : "Bill + Token"}
           </button>
           <button
             className="btn btn-outline-success btn-sm px-3"
+            disabled={isPrinting}
             onClick={() => {
-              const fullHTML = generatePrintableHTML();
-              printCustomerReceipt(fullHTML, null);
+              if (isPrinting) return;
+              setIsPrinting(true);
+              try {
+                const fullHTML = generatePrintableHTML();
+                printCustomerReceipt(fullHTML, null, `${orderKey}-manual-bill`);
+              } finally {
+                setTimeout(() => setIsPrinting(false), 2500);
+              }
             }}
           >
             🧾 Bill Only
           </button>
           <button
             className="btn btn-info text-white btn-sm px-3 fw-bold"
+            disabled={isPrinting}
             onClick={() => {
-              const tokenSlipHTML = generateTokenSlipHTML();
-              printCustomerTokenSlip(tokenSlipHTML);
+              if (isPrinting) return;
+              setIsPrinting(true);
+              try {
+                const tokenSlipHTML = generateTokenSlipHTML();
+                printCustomerTokenSlip(tokenSlipHTML, `${orderKey}-manual-token`);
+              } finally {
+                setTimeout(() => setIsPrinting(false), 2500);
+              }
             }}
           >
             🎟️ Token Only
           </button>
           <button
             className="btn btn-warning btn-sm px-3 fw-bold text-dark"
+            disabled={isPrinting}
             onClick={() => {
-              const kitchenHTML = generateKitchenHTML();
-              printKitchenKOT(kitchenHTML);
+              if (isPrinting) return;
+              setIsPrinting(true);
+              try {
+                const kitchenHTML = generateKitchenHTML();
+                printKitchenKOT(kitchenHTML, `${orderKey}-manual-kitchen`);
+              } finally {
+                setTimeout(() => setIsPrinting(false), 2500);
+              }
             }}
           >
             🍳 Kitchen KOT
           </button>
           <button
             className="btn btn-primary btn-sm px-3 fw-bold"
+            disabled={isPrinting}
             onClick={() => {
-              const fullHTML = generatePrintableHTML();
-              const tokenSlipHTML = generateTokenSlipHTML();
-              const kitchenHTML = generateKitchenHTML();
-              printReceiptToBoth(fullHTML, kitchenHTML, "all", tokenSlipHTML);
+              if (isPrinting) return;
+              setIsPrinting(true);
+              try {
+                const fullHTML = generatePrintableHTML();
+                const tokenSlipHTML = generateTokenSlipHTML();
+                const kitchenHTML = generateKitchenHTML();
+                printReceiptToBoth(fullHTML, kitchenHTML, "all", tokenSlipHTML, `${orderKey}-manual-all`);
+              } finally {
+                setTimeout(() => setIsPrinting(false), 2500);
+              }
             }}
           >
-            📑 Print All
+            📑 {isPrinting ? "Printing..." : "Print All"}
           </button>
         </div>
       </div>

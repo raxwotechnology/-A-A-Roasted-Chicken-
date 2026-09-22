@@ -106,6 +106,15 @@ const getPrintData = (html) => [{
 let isBrowserPrinting = false;
 let lastBrowserPrintTime = 0;
 
+// Mutex set to track active print jobs and prevent concurrent duplicate prints
+const activePrintingJobs = new Set();
+
+const extractOrderKeyFromHTML = (html) => {
+  if (!html) return null;
+  const match = html.match(/(?:INV-[\w-]+|Daily Token #\d+|Order #[\w-]+)/i);
+  return match ? match[0].trim() : null;
+};
+
 /**
  * Reset all module-level print state.
  * Call this on logout so the next login session starts fresh
@@ -116,6 +125,7 @@ export const resetPrintState = () => {
   lastBrowserPrintTime = 0;
   cachedPrinters = null;
   lastPrintersFetch = 0;
+  activePrintingJobs.clear();
   try { localStorage.removeItem("cached_printers"); } catch (e) {}
 };
 
@@ -206,29 +216,39 @@ const getSavedPrinters = async (token) => {
   return cachedPrinters || [];
 };
 
+let qzConnectPromise = null;
+
 /**
- * Fast QZ Tray connection check with 1.2s timeout so it doesn't hang
+ * Fast QZ Tray connection check with 3.5s timeout.
+ * Reuses in-flight promise and can be called early to pre-warm the WebSocket.
  */
-const connectQZTrayFast = () => {
+export const connectQZTrayFast = (timeoutMs = 3500) => {
   if (typeof qz === "undefined") return Promise.reject(new Error("QZ Tray not installed"));
   if (qz.websocket && qz.websocket.isActive && qz.websocket.isActive()) {
     return Promise.resolve();
   }
-  return new Promise((resolve, reject) => {
+  if (qzConnectPromise) {
+    return qzConnectPromise;
+  }
+  qzConnectPromise = new Promise((resolve, reject) => {
     const timeout = setTimeout(() => {
-      reject(new Error("QZ Tray connection timeout (1.2s)"));
-    }, 1200);
+      qzConnectPromise = null;
+      reject(new Error(`QZ Tray connection timeout (${timeoutMs}ms)`));
+    }, timeoutMs);
 
     qz.websocket.connect({ retries: 0, delay: 0 })
       .then(() => {
         clearTimeout(timeout);
+        qzConnectPromise = null;
         resolve();
       })
       .catch((err) => {
         clearTimeout(timeout);
+        qzConnectPromise = null;
         reject(err);
       });
   });
+  return qzConnectPromise;
 };
 
 /**
@@ -237,8 +257,24 @@ const connectQZTrayFast = () => {
  * @param {string} kitchenHTML - KOT HTML with Token #, items & quantities only (NO prices)
  * @param {string} targetRole - "all" | "cashier" | "kitchen" | "token"
  * @param {string} tokenSlipHTML - Standalone customer token / order number slip
+ * @param {string|null} orderKey - Optional unique order identifier to prevent duplicate concurrent prints
  */
-export const printReceiptToBoth = async (customerHTML, kitchenHTML, targetRole = "all", tokenSlipHTML = null) => {
+export const printReceiptToBoth = async (customerHTML, kitchenHTML, targetRole = "all", tokenSlipHTML = null, orderKey = null) => {
+  const lockKey = orderKey || extractOrderKeyFromHTML(customerHTML) || extractOrderKeyFromHTML(tokenSlipHTML);
+  const mutexKey = lockKey ? `${lockKey}:${targetRole}` : null;
+
+  if (mutexKey) {
+    if (activePrintingJobs.has(mutexKey)) {
+      console.warn(`[printReceipt] Duplicate print prevented for ${mutexKey}`);
+      return;
+    }
+    activePrintingJobs.add(mutexKey);
+    // Lock for 8 seconds to prevent fast duplicate triggers
+    setTimeout(() => {
+      activePrintingJobs.delete(mutexKey);
+    }, 8000);
+  }
+
   let token;
   try {
     token = localStorage.getItem("token");
@@ -266,7 +302,7 @@ export const printReceiptToBoth = async (customerHTML, kitchenHTML, targetRole =
   let printedViaQZ = false;
   if (typeof qz !== "undefined" && savedPrinters.length > 0) {
     try {
-      await connectQZTrayFast();
+      await connectQZTrayFast(3500);
 
       for (const printer of savedPrinters) {
         const printerName = printer.name;
@@ -303,7 +339,7 @@ export const printReceiptToBoth = async (customerHTML, kitchenHTML, targetRole =
               await qz.print(config, getPrintData(tokenSlipHTML));
               printedViaQZ = true;
               const toastKey = `print-${printerName.toLowerCase().replace(/[^a-z0-9]/g, '_')}-token`;
-              toast.success(`✅ Printed Token to ${printerName}`, { toastId: toastKey });
+              toast.success(`✅ Printed Token to ${printerName}`, { toastId: tokenToastKey });
             }
           } else {
             // Kitchen Printer: Print KOT
@@ -353,20 +389,20 @@ export const printReceiptToBoth = async (customerHTML, kitchenHTML, targetRole =
 /**
  * Shortcut to print Customer Receipt (+ optional Token Slip)
  */
-export const printCustomerReceipt = async (customerHTML, tokenSlipHTML = null) => {
-  return printReceiptToBoth(customerHTML, null, "cashier", tokenSlipHTML);
+export const printCustomerReceipt = async (customerHTML, tokenSlipHTML = null, orderKey = null) => {
+  return printReceiptToBoth(customerHTML, null, "cashier", tokenSlipHTML, orderKey);
 };
 
 /**
  * Shortcut to print ONLY Customer Token Slip
  */
-export const printCustomerTokenSlip = async (tokenSlipHTML) => {
-  return printReceiptToBoth(null, null, "token", tokenSlipHTML);
+export const printCustomerTokenSlip = async (tokenSlipHTML, orderKey = null) => {
+  return printReceiptToBoth(null, null, "token", tokenSlipHTML, orderKey);
 };
 
 /**
  * Shortcut to print ONLY Kitchen KOT
  */
-export const printKitchenKOT = async (kitchenHTML) => {
-  return printReceiptToBoth(null, kitchenHTML, "kitchen");
+export const printKitchenKOT = async (kitchenHTML, orderKey = null) => {
+  return printReceiptToBoth(null, kitchenHTML, "kitchen", null, orderKey);
 };

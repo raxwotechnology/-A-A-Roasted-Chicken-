@@ -1,6 +1,8 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
 import axios from "axios";
 import API_BASE_URL from "../api.js";
+import { resetPrintState } from "../utils/printReceipt";
+import { clearAutoPrintedOrders } from "../components/ReceiptModal";
 
 export const AuthContext = createContext();
 
@@ -113,11 +115,18 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("userName", data.name);
     const decoded = JSON.parse(atob(data.token.split(".")[1]));
     setUser(decoded);
+    resetPrintState();
+    clearAutoPrintedOrders();
   };
 
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("userName");
     setUser(null);
+    resetPrintState();
+    clearAutoPrintedOrders();
   };
 
   return (

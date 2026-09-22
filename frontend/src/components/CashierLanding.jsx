@@ -22,6 +22,7 @@ import {
   showTotalDisplay,
   showPaymentDisplay
 } from "../utils/customerDisplay";
+import { connectQZTrayFast } from "../utils/printReceipt";
 
 const CashierLanding = () => {
   // ⚡ Instant Cache initialization for 0ms initial render
@@ -114,6 +115,11 @@ const CashierLanding = () => {
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Pre-warm QZ Tray WebSocket connection in background so first print is instant
+  useEffect(() => {
+    connectQZTrayFast().catch(() => {});
   }, []);
 
   // Load menus and auxiliary data
