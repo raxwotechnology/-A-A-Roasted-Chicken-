@@ -5,6 +5,12 @@ import { FaMoneyBillWave, FaPlus, FaTrashAlt, FaSyncAlt } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import API_BASE_URL from "../api.js";
+import {
+  getStoredCategories,
+  getStoredReasons,
+  saveCustomSuggestion,
+  fetchExpenseSuggestions
+} from "../utils/expenseSuggestions.js";
 
 const CashierSummary = () => {
   const [orders, setOrders] = useState([]);
@@ -30,6 +36,9 @@ const CashierSummary = () => {
   const [expenseDesc, setExpenseDesc] = useState("");
   const [expenseAmount, setExpenseAmount] = useState("");
 
+  const [suggestedCategories, setSuggestedCategories] = useState(getStoredCategories());
+  const [suggestedReasons, setSuggestedReasons] = useState(getStoredReasons());
+
   const token = localStorage.getItem("token");
   const cashierId = localStorage.getItem("userId");
   const symbol = localStorage.getItem("currencySymbol") || "$";
@@ -42,7 +51,13 @@ const CashierSummary = () => {
     if (savedLocked === 'true') {
       setStartingCashLocked(true);
     }
-    // else leave as false (default)
+    // Load dynamic categories & reasons
+    fetchExpenseSuggestions(API_BASE_URL, token).then(data => {
+      if (data) {
+        setSuggestedCategories(data.categories);
+        setSuggestedReasons(data.reasons);
+      }
+    });
   }, []);
 
 
@@ -108,6 +123,12 @@ const CashierSummary = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setOtherExpenses(res.data);
+      if (Array.isArray(res.data)) {
+        const hCats = res.data.map(e => e.category).filter(Boolean);
+        const hDesc = res.data.map(e => e.description).filter(Boolean);
+        setSuggestedCategories(prev => Array.from(new Set([...prev, ...hCats])));
+        setSuggestedReasons(prev => Array.from(new Set([...prev, ...hDesc])));
+      }
     } catch (err) {
       if (err.response?.status !== 404) {
         console.error("Failed to load other expenses:", err);
@@ -241,24 +262,19 @@ const CashierSummary = () => {
   const addOtherExpense = async () => {
     if (isReadOnly) return;
 
-    if (expenseSource.trim() === "Other") {
-      if (!expenseDesc.trim() || !expenseAmount || parseFloat(expenseAmount) <= 0) {
-        toast.error("Please enter valid description and amount");
-        return;
-      }
-    }
-    else {
-      if (!expenseSource || !expenseAmount || parseFloat(expenseAmount) <= 0) {
-        toast.error("Please enter valid description and amount");
-        return;
-      }
+    const trimmedCat = (expenseSource || "Petty Cash").trim();
+    const trimmedDesc = (expenseDesc || "").trim();
+
+    if (!trimmedCat || !expenseAmount || parseFloat(expenseAmount) <= 0) {
+      toast.error("Please enter a category and valid amount");
+      return;
     }
 
     try {
       const payload = {
-        category: expenseSource,
+        category: trimmedCat,
         amount: parseFloat(expenseAmount),
-        description: expenseDesc,
+        description: trimmedDesc,
         date: dateFilter,
         paymentMethod: "Cash",
       };
@@ -270,10 +286,20 @@ const CashierSummary = () => {
       );
 
       setOtherExpenses([...otherExpenses, res.data]);
+
+      // Learn / save suggestions immediately
+      saveCustomSuggestion(trimmedCat, trimmedDesc);
+      if (trimmedCat && !suggestedCategories.includes(trimmedCat)) {
+        setSuggestedCategories(prev => [...prev, trimmedCat]);
+      }
+      if (trimmedDesc && !suggestedReasons.includes(trimmedDesc)) {
+        setSuggestedReasons(prev => [...prev, trimmedDesc]);
+      }
+
       setExpenseDesc("");
       setExpenseAmount("");
       setExpenseSource("");
-      toast.success(" Cash Out added!");
+      toast.success("Cash Out added!");
     } catch (err) {
       console.error("Add expense failed:", err);
       toast.error("Failed to add cash out");
@@ -732,63 +758,107 @@ const CashierSummary = () => {
             <>
               <div className="row g-2 mb-3">
                 <div className="col-md-6">
-                  <div className="input-group">
-                    <select
-                      name="category"
-                      placeholder="Expense Category"
-                      value={expenseSource}
-                      onChange={(e) => setExpenseSource(e.target.value)}
-                      className="form-select"
-                      disabled={isReadOnly}
-                    >
-                      <option>Marketing</option>
-                      <option>Admin Supplies</option>
-                      <option>Repairs & Maintenance</option>
-                      <option>Software/Subscription</option>
-                      <option>Training</option>
-                      <option>Other</option>
-                    </select>
+                  <label className="form-label small fw-semibold text-muted mb-1">
+                    Expense Category (Type custom or select)
+                  </label>
+                  <input
+                    type="text"
+                    name="category"
+                    list="cashier-expense-categories"
+                    placeholder="e.g. Petty Cash, Food, Transport, Repairs..."
+                    value={expenseSource}
+                    onChange={(e) => setExpenseSource(e.target.value)}
+                    className="form-control"
+                    disabled={isReadOnly}
+                    autoComplete="off"
+                  />
+                  <datalist id="cashier-expense-categories">
+                    {suggestedCategories.map((cat, idx) => (
+                      <option key={idx} value={cat} />
+                    ))}
+                  </datalist>
+                  <div className="d-flex flex-wrap gap-1 mt-1">
+                    {suggestedCategories.slice(0, 6).map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        className={`btn btn-sm py-0 px-2 rounded-pill ${expenseSource === cat ? "btn-danger" : "btn-outline-secondary"}`}
+                        style={{ fontSize: "0.72rem" }}
+                        onClick={() => setExpenseSource(cat)}
+                        disabled={isReadOnly}
+                      >
+                        {cat}
+                      </button>
+                    ))}
                   </div>
                 </div>
+
                 <div className="col-md-6">
+                  <label className="form-label small fw-semibold text-muted mb-1">
+                    Amount ({symbol})
+                  </label>
                   <div className="input-group">
                     <span className="input-group-text">{symbol}</span>
                     <input
                       type="number"
                       step="0.01"
                       className="form-control"
-                      placeholder="Amount"
+                      placeholder="0.00"
                       value={expenseAmount}
                       onChange={(e) => setExpenseAmount(e.target.value)}
                       disabled={isReadOnly}
                     />
                   </div>
                 </div>
-
               </div>
+
               <div className="row g-2">
                 <div className="col-md-10">
+                  <label className="form-label small fw-semibold text-muted mb-1">
+                    Reason / Description (Auto-suggests previous reasons)
+                  </label>
                   <input
                     type="text"
                     className="form-control"
-                    placeholder="Description (e.g., 'Office Supplies')"
+                    list="cashier-expense-reasons"
+                    placeholder="e.g., Gas Refill, Vegetables, Staff Lunch, Internet bill..."
                     value={expenseDesc}
                     onChange={(e) => setExpenseDesc(e.target.value)}
                     disabled={isReadOnly}
+                    autoComplete="off"
                   />
+                  <datalist id="cashier-expense-reasons">
+                    {suggestedReasons.map((r, idx) => (
+                      <option key={idx} value={r} />
+                    ))}
+                  </datalist>
+                  <div className="d-flex flex-wrap gap-1 mt-1">
+                    {suggestedReasons.slice(0, 5).map((r) => (
+                      <button
+                        key={r}
+                        type="button"
+                        className={`btn btn-sm py-0 px-2 rounded-pill ${expenseDesc === r ? "btn-dark" : "btn-light border"}`}
+                        style={{ fontSize: "0.72rem" }}
+                        onClick={() => setExpenseDesc(r)}
+                        disabled={isReadOnly}
+                      >
+                        {r}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div className="col-md-2">
+                <div className="col-md-2 d-flex align-items-center mt-4">
                   <button
-                    className="btn btn-outline-danger w-100"
+                    className="btn btn-outline-danger w-100 py-2"
                     onClick={addOtherExpense}
                     disabled={
                       isReadOnly ||
-                      !expenseDesc.trim() ||
+                      !expenseSource.trim() ||
                       !expenseAmount ||
                       parseFloat(expenseAmount) <= 0
                     }
                   >
-                    Add
+                    + Add
                   </button>
                 </div>
               </div>

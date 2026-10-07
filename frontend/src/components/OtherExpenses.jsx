@@ -4,11 +4,20 @@ import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import API_BASE_URL from "../api.js";
+import {
+  getStoredCategories,
+  getStoredReasons,
+  saveCustomSuggestion,
+  fetchExpenseSuggestions
+} from "../utils/expenseSuggestions.js";
 
 const OtherExpenses = () => {
   const [expenses, setExpenses] = useState([]);
+  const [categories, setCategories] = useState(getStoredCategories());
+  const [reasons, setReasons] = useState(getStoredReasons());
+
   const [newExpense, setNewExpense] = useState({
-    category: "Marketing",
+    category: "",
     amount: "",
     description: "",
     date: new Date().toISOString().split("T")[0],
@@ -17,12 +26,19 @@ const OtherExpenses = () => {
 
   const [editingExpense, setEditingExpense] = useState(null);
   const [editData, setEditData] = useState({ ...newExpense });
-  const [loading, setLoading] = useState(false);
 
-  // Load all expenses on mount
+  // Load all expenses and suggestions on mount
   useEffect(() => {
     fetchExpenses();
+    loadSuggestions();
   }, []);
+
+  const loadSuggestions = async () => {
+    const token = localStorage.getItem("token");
+    const data = await fetchExpenseSuggestions(API_BASE_URL, token);
+    setCategories(data.categories);
+    setReasons(data.reasons);
+  };
 
   const fetchExpenses = async () => {
     const token = localStorage.getItem("token");
@@ -33,6 +49,15 @@ const OtherExpenses = () => {
       });
 
       setExpenses(res.data);
+
+      // Merge any categories and reasons already in historical data
+      if (Array.isArray(res.data)) {
+        const fromHistoryCats = res.data.map(e => e.category).filter(Boolean);
+        const fromHistoryReasons = res.data.map(e => e.description).filter(Boolean);
+
+        setCategories(prev => Array.from(new Set([...prev, ...fromHistoryCats])));
+        setReasons(prev => Array.from(new Set([...prev, ...fromHistoryReasons])));
+      }
     } catch (err) {
       console.error("Failed to load expenses:", err.message);
       toast.error("Failed to load other expenses");
@@ -47,18 +72,27 @@ const OtherExpenses = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const { category, amount, date } = newExpense;
+    const { category, amount, date, description } = newExpense;
 
-    if (!category || !amount || !date) {
-      alert("Category, Amount, and Date are required");
+    if (!category || !category.trim() || !amount || !date) {
+      toast.warn("Category, Amount, and Date are required");
       return;
     }
 
     try {
       const token = localStorage.getItem("token");
+      const trimmedCategory = category.trim();
+      const trimmedDescription = (description || "").trim();
+
+      const payload = {
+        ...newExpense,
+        category: trimmedCategory,
+        description: trimmedDescription
+      };
+
       const res = await axios.post(
         `${API_BASE_URL}/api/auth/expense/other`,
-        newExpense,
+        payload,
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -67,8 +101,18 @@ const OtherExpenses = () => {
       );
 
       setExpenses([res.data, ...expenses]);
+
+      // Learn / save suggestions immediately
+      saveCustomSuggestion(trimmedCategory, trimmedDescription);
+      if (trimmedCategory && !categories.includes(trimmedCategory)) {
+        setCategories(prev => [...prev, trimmedCategory]);
+      }
+      if (trimmedDescription && !reasons.includes(trimmedDescription)) {
+        setReasons(prev => [...prev, trimmedDescription]);
+      }
+
       setNewExpense({
-        category: "Marketing",
+        category: "",
         amount: "",
         description: "",
         date: new Date().toISOString().split("T")[0],
@@ -91,7 +135,7 @@ const OtherExpenses = () => {
     setEditData({
       category: expense.category,
       amount: expense.amount,
-      description: expense.description,
+      description: expense.description || "",
       date: new Date(expense.date).toISOString().split("T")[0],
       paymentMethod: expense.paymentMethod || "Cash"
     });
@@ -105,24 +149,43 @@ const OtherExpenses = () => {
   const handleUpdate = async (e) => {
     e.preventDefault();
 
-    const { category, amount, date } = editData;
+    const { category, amount, date, description } = editData;
 
-    if (!category || !amount || !date) {
-      alert("All fields are required");
+    if (!category || !category.trim() || !amount || !date) {
+      toast.warn("All required fields must be filled");
       return;
     }
 
     try {
       const token = localStorage.getItem("token");
+      const trimmedCategory = category.trim();
+      const trimmedDescription = (description || "").trim();
+
+      const payload = {
+        ...editData,
+        category: trimmedCategory,
+        description: trimmedDescription
+      };
+
       const res = await axios.put(
         `${API_BASE_URL}/api/auth/expense/other/${editingExpense}`,
-        editData,
+        payload,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
       );
 
       setExpenses(expenses.map((e) => (e._id === editingExpense ? res.data : e)));
+
+      // Learn / save suggestions
+      saveCustomSuggestion(trimmedCategory, trimmedDescription);
+      if (trimmedCategory && !categories.includes(trimmedCategory)) {
+        setCategories(prev => [...prev, trimmedCategory]);
+      }
+      if (trimmedDescription && !reasons.includes(trimmedDescription)) {
+        setReasons(prev => [...prev, trimmedDescription]);
+      }
+
       setEditingExpense(null);
       toast.success("Expense updated!");
     } catch (err) {
@@ -157,22 +220,45 @@ const OtherExpenses = () => {
       {/* Add Expense Form */}
       <form onSubmit={handleSubmit} className="p-4 bg-white border rounded shadow-sm mb-5">
         <div className="row g-3">
+          {/* Dynamic Category with Datalist & Quick Suggestions */}
           <div className="col-md-6">
-            <label className="form-label fw-semibold">Expense Category</label>
-            <select
+            <div className="d-flex justify-content-between align-items-center mb-1">
+              <label className="form-label fw-semibold mb-0">Expense Category</label>
+              <small className="text-muted">Type custom or select</small>
+            </div>
+            <input
+              type="text"
               name="category"
+              list="category-suggestions-list"
               value={newExpense.category}
               onChange={handleChange}
-              className="form-select"
-            >
-              <option>Marketing</option>
-              <option>Admin Supplies</option>
-              <option>Repairs & Maintenance</option>
-              <option>Software/Subscription</option>
-              <option>Training</option>
-              <option>Other</option>
-            </select>
+              placeholder="Type or select category..."
+              className="form-control"
+              required
+              autoComplete="off"
+            />
+            <datalist id="category-suggestions-list">
+              {categories.map((cat, idx) => (
+                <option key={idx} value={cat} />
+              ))}
+            </datalist>
+
+            {/* Quick Category Chips */}
+            <div className="d-flex flex-wrap gap-1 mt-2">
+              {categories.slice(0, 8).map((cat) => (
+                <button
+                  key={cat}
+                  type="button"
+                  className={`btn btn-sm py-0 px-2 rounded-pill ${newExpense.category === cat ? "btn-danger" : "btn-outline-secondary"}`}
+                  style={{ fontSize: "0.75rem" }}
+                  onClick={() => setNewExpense(prev => ({ ...prev, category: cat }))}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
           </div>
+
           <div className="col-md-6">
             <label className="form-label fw-semibold">Amount ({symbol})</label>
             <input
@@ -181,11 +267,12 @@ const OtherExpenses = () => {
               value={newExpense.amount}
               onChange={handleChange}
               step="0.01"
-              placeholder="e.g., 150"
+              placeholder="e.g., 1500"
               className="form-control"
               required
             />
           </div>
+
           <div className="col-md-6">
             <label className="form-label fw-semibold">Payment Method</label>
             <select
@@ -202,6 +289,7 @@ const OtherExpenses = () => {
               <option value="Other">Other</option>
             </select>
           </div>
+
           <div className="col-md-6">
             <label className="form-label fw-semibold">Date</label>
             <input
@@ -213,16 +301,45 @@ const OtherExpenses = () => {
               required
             />
           </div>
+
+          {/* Dynamic Reason / Description with Datalist */}
           <div className="col-12 mt-3">
-            <label className="form-label fw-semibold">Description</label>
-            <textarea
+            <div className="d-flex justify-content-between align-items-center mb-1">
+              <label className="form-label fw-semibold mb-0">Reason / Description</label>
+              <small className="text-muted">Type any reason — auto suggests past entries</small>
+            </div>
+            <input
+              type="text"
               name="description"
+              list="reason-suggestions-list"
               value={newExpense.description}
               onChange={handleChange}
-              rows="2"
+              placeholder="e.g. Gas Cylinder Refill, Vegetables, Staff Lunch, Internet bill..."
               className="form-control"
+              autoComplete="off"
             />
+            <datalist id="reason-suggestions-list">
+              {reasons.map((r, idx) => (
+                <option key={idx} value={r} />
+              ))}
+            </datalist>
+
+            {/* Quick Reason Chips */}
+            <div className="d-flex flex-wrap gap-1 mt-2">
+              {reasons.slice(0, 6).map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  className={`btn btn-sm py-0 px-2 rounded-pill ${newExpense.description === r ? "btn-dark" : "btn-light border"}`}
+                  style={{ fontSize: "0.75rem" }}
+                  onClick={() => setNewExpense(prev => ({ ...prev, description: r }))}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
           </div>
+
           <div className="col-12 mt-3">
             <button type="submit" className="btn btn-danger w-100 py-2 fs-5">
               + Add Expense
@@ -252,20 +369,24 @@ const OtherExpenses = () => {
                 <form onSubmit={handleUpdate}>
                   <div className="mb-3">
                     <label className="form-label fw-semibold">Expense Category</label>
-                    <select
+                    <input
+                      type="text"
                       name="category"
+                      list="edit-category-suggestions"
                       value={editData.category}
                       onChange={handleEditChange}
-                      className="form-select"
-                    >
-                      <option>Marketing</option>
-                      <option>Admin Supplies</option>
-                      <option>Repairs & Maintenance</option>
-                      <option>Software/Subscription</option>
-                      <option>Training</option>
-                      <option>Other</option>
-                    </select>
+                      className="form-control"
+                      placeholder="Type or select category..."
+                      required
+                      autoComplete="off"
+                    />
+                    <datalist id="edit-category-suggestions">
+                      {categories.map((cat, idx) => (
+                        <option key={idx} value={cat} />
+                      ))}
+                    </datalist>
                   </div>
+
                   <div className="mb-3">
                     <label className="form-label fw-semibold">Amount ({symbol})</label>
                     <input
@@ -278,6 +399,7 @@ const OtherExpenses = () => {
                       required
                     />
                   </div>
+
                   <div className="mb-3">
                     <label className="form-label fw-semibold">Payment Method</label>
                     <select
@@ -294,6 +416,7 @@ const OtherExpenses = () => {
                       <option value="Other">Other</option>
                     </select>
                   </div>
+
                   <div className="mb-3">
                     <label className="form-label fw-semibold">Date</label>
                     <input
@@ -305,16 +428,26 @@ const OtherExpenses = () => {
                       required
                     />
                   </div>
+
                   <div className="mb-3">
-                    <label className="form-label fw-semibold">Description</label>
-                    <textarea
+                    <label className="form-label fw-semibold">Reason / Description</label>
+                    <input
+                      type="text"
                       name="description"
+                      list="edit-reason-suggestions"
                       value={editData.description}
                       onChange={handleEditChange}
-                      rows="2"
                       className="form-control"
+                      placeholder="Reason / Description"
+                      autoComplete="off"
                     />
+                    <datalist id="edit-reason-suggestions">
+                      {reasons.map((r, idx) => (
+                        <option key={idx} value={r} />
+                      ))}
+                    </datalist>
                   </div>
+
                   <div className="d-flex gap-2">
                     <button type="submit" className="btn btn-danger w-100">
                       Save Changes

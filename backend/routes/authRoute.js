@@ -53,7 +53,7 @@ const driverController = require("../controllers/driverController");
 const {submitShiftSummary,  getShiftSummaries,  getShiftSummaryByDate} = require("../controllers/cashierShiftSummaryController");
 
 const {  getIncomes,  addIncome,  updateIncome,  deleteIncome, getIncomesByDate} = require("../controllers/otherIncomeController");
-const {  getExpenses,  addExpense,  updateExpense,  deleteExpense, getExpensesByDate} = require("../controllers/otherExpenseController");
+const {  getExpenses,  addExpense,  updateExpense,  deleteExpense, getExpensesByDate, getExpenseSuggestions} = require("../controllers/otherExpenseController");
 const { getPrinters, upsertPrinter, deletePrinter, testPrinter } = require("../controllers/printerController");
 
 const {getRefreshStatus, resetRefreshStatus, markAsRefreshed } = require('../controllers/refreshStatusController');
@@ -212,6 +212,7 @@ router.delete("/income/other/:id", authMiddleware(["admin", "cashier"]), deleteI
 router.get("/income/other/by-date", authMiddleware(["admin", "cashier"]), getIncomesByDate);
 
 router.get("/expense/other/", authMiddleware(["admin", "cashier"]), getExpenses);
+router.get("/expense/other/suggestions", authMiddleware(["admin", "cashier"]), getExpenseSuggestions);
 router.post("/expense/other/", authMiddleware(["admin", "cashier"]), addExpense);
 router.put("/expense/other/:id", authMiddleware(["admin", "cashier"]), updateExpense);
 router.delete("/expense/other/:id", authMiddleware(["admin", "cashier"]), deleteExpense);

@@ -12,6 +12,23 @@ exports.getExpenses = async (req, res) => {
   }
 };
 
+// Get distinct suggestions for categories and descriptions (reasons)
+exports.getExpenseSuggestions = async (req, res) => {
+  try {
+    const [categories, reasons] = await Promise.all([
+      OtherExpense.distinct("category"),
+      OtherExpense.distinct("description")
+    ]);
+    res.json({
+      categories: (categories || []).filter(c => c && typeof c === "string" && c.trim()),
+      reasons: (reasons || []).filter(r => r && typeof r === "string" && r.trim())
+    });
+  } catch (err) {
+    console.error("Failed to load suggestions:", err);
+    res.status(500).json({ error: "Failed to load suggestions" });
+  }
+};
+
 // backend/controllers/otherExpenseController.js
 
 // ✅ Add this method
