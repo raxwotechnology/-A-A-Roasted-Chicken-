@@ -23,7 +23,7 @@ function buildKOTText(order) {
   let text = "";
   text += init;
   text += alignCenter;
-  text += boldOn + doubleSize + `KOT TOKEN #: #${dailyNo}\n` + normalSize + boldOff;
+  text += boldOn + doubleSize + `KOT ORDER #: #${dailyNo}\n` + normalSize + boldOff;
   text += "================================\n";
   text += alignLeft;
   text += `INVOICE: ${order.orderId || order._id}\n`;

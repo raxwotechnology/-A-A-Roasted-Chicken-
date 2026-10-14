@@ -79,7 +79,7 @@ const ReceiptView = () => {
       <hr />
 
       <div style={{ textAlign: "center", fontSize: "18px", fontWeight: "bold", margin: "6px 0", border: "1px dashed #000", padding: "4px 0" }}>
-        DAILY TOKEN #: #{dailyNo}
+        DAILY ORDER #: #{dailyNo}
       </div>
       
       <table style={{ width: "100%", fontSize: "13px", margin: "6px 0" }}>

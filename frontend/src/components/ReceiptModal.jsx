@@ -214,7 +214,7 @@ const ReceiptModal = ({ order, onClose }) => {
         <hr />
 
         <div class="text-center" style="font-size:18px; font-weight:bold; margin:6px 0; border:1px dashed #000; padding:4px 0;">
-          DAILY TOKEN #: #${dailyNo}
+          DAILY ORDER #: #${dailyNo}
         </div>
 
         <table style="width:100%; border-collapse:collapse; font-size:14px; margin:8px 0;">
@@ -368,7 +368,7 @@ const ReceiptModal = ({ order, onClose }) => {
           <div class="text-center" style="font-size:15px; font-weight:bold; letter-spacing:1px;">*** KITCHEN ORDER (KOT) ***</div>
           
           <div class="token-box">
-            TOKEN #: #${dailyNo}
+            ORDER #: #${dailyNo}
           </div>
 
           <table style="font-size:13px; margin:4px 0;">
@@ -408,93 +408,55 @@ const ReceiptModal = ({ order, onClose }) => {
     `;
   };
 
-  // 🎟️ 3. CUSTOMER TOKEN / ORDER SLIP TEMPLATE (Token #, Invoice #, Date/Time, Order Type ONLY)
+  // 🎟️ 3. CUSTOMER ORDER NUMBER SLIP TEMPLATE (Order Number ONLY)
   const generateTokenSlipHTML = () => {
     return `
       <!DOCTYPE html>
       <html>
         <head>
           <meta charset="UTF-8">
-          <title>Customer Order Token</title>
+          <title>Order #${dailyNo}</title>
           <style>
+            @page {
+              margin: 0;
+            }
             body {
               font-family: Calibri, Arial, sans-serif;
               width: 275px;
-              margin: 0;
-              padding: 8px;
+              margin: 0 auto;
+              padding: 14px 6px;
               background: #fff;
               color: #000;
-              line-height: 1.4;
+              text-align: center;
               box-sizing: border-box;
             }
-            hr {
-              border: 0;
-              border-top: 1px dashed #000;
-              margin: 6px 0;
-            }
-            .text-center { text-align: center; }
-            .token-box {
+            .order-box {
+              border: 3px solid #000;
+              padding: 16px 6px;
+              margin: 4px 0;
               text-align: center;
-              font-size: 28px;
-              font-weight: 900;
-              margin: 8px 0;
-              border: 2px solid #000;
-              padding: 8px 0;
-              letter-spacing: 1px;
+              border-radius: 4px;
             }
-            table {
-              width: 100%;
-              border-collapse: collapse;
+            .order-title {
+              font-size: 20px;
+              font-weight: 800;
+              letter-spacing: 2px;
+              text-transform: uppercase;
+              margin-bottom: 6px;
+            }
+            .order-num {
+              font-size: 52px;
+              font-weight: 900;
+              line-height: 1.1;
             }
           </style>
         </head>
         <body>
-          <div class="text-center mb-2">
-            ${logoSrc ? `<img src="${logoSrc}" alt="Logo" style="max-width:180px; max-height:80px; width:auto; height:auto; object-fit:contain; display:inline-block;" />` : ''}
+          <!-- Order #${dailyNo} -->
+          <div class="order-box">
+            <div class="order-title">ORDER NUMBER</div>
+            <div class="order-num">#${dailyNo}</div>
           </div>
-          
-          <h3 class="text-center" style="font-size:18px; font-weight:bold; margin:4px 0;">${restaurantDetails.name}</h3>
-          <p class="text-center" style="font-size:12px; margin:2px 0;">${restaurantDetails.address}</p>
-          <p class="text-center" style="font-size:13px; font-weight:bold; margin:2px 0;">${restaurantDetails.phone}</p>
-          
-          <hr />
-
-          <div class="text-center" style="font-size:14px; font-weight:bold; letter-spacing:1px; margin-top:4px;">*** CUSTOMER ORDER TOKEN ***</div>
-
-          <div class="token-box">
-            TOKEN #: #${dailyNo}
-          </div>
-
-          <table style="width:100%; border-collapse:collapse; font-size:13px; margin:6px 0;">
-            <tr>
-              <td style="width:90px; font-weight:bold; padding:2px 0; text-align:left;">Invoice No:</td>
-              <td style="padding:2px 0; text-align:left;">${order.invoiceNo || 'N/A'}</td>
-            </tr>
-            <tr>
-              <td style="width:90px; font-weight:bold; padding:2px 0; text-align:left;">Date & Time:</td>
-              <td style="padding:2px 0; text-align:left;">${now}</td>
-            </tr>
-            <tr>
-              <td style="width:90px; font-weight:bold; padding:2px 0; text-align:left;">Order Type:</td>
-              <td style="padding:2px 0; text-align:left; font-weight:bold;">${orderTypeStr}</td>
-            </tr>
-            <tr>
-              <td style="width:90px; font-weight:bold; padding:2px 0; text-align:left;">Customer:</td>
-              <td style="padding:2px 0; text-align:left;">${customerName || 'Walk-in'}</td>
-            </tr>
-            ${customerPhone ? `
-            <tr>
-              <td style="width:90px; font-weight:bold; padding:2px 0; text-align:left;">Phone:</td>
-              <td style="padding:2px 0; text-align:left;">${customerPhone}</td>
-            </tr>` : ''}
-          </table>
-
-          <hr />
-
-          <p class="text-center" style="font-size:14px; font-weight:bold; margin:8px 0 4px 0;">Please keep this slip to collect your order.</p>
-          <p class="text-center" style="font-size:13px; margin:2px 0;">Thank you for dining with us!</p>
-          <p class="text-center" style="font-size:11px; margin:4px 0; color:#555;">Software By: Raxwo (Pvt) Ltd.</p>
-          <hr />
         </body>
       </html>
     `;
@@ -514,7 +476,7 @@ const ReceiptModal = ({ order, onClose }) => {
       const height = (canvas.height * width) / canvas.width;
 
       pdf.addImage(imgData, "PNG", 0, 0, width, height);
-      const prefix = activeTab === "kot" ? "kitchen_kot" : (activeTab === "token" ? "customer_token" : "customer_bill");
+      const prefix = activeTab === "kot" ? "kitchen_kot" : (activeTab === "token" ? "order_number" : "customer_bill");
       pdf.save(`${prefix}_#${dailyNo}.pdf`);
     });
   };
@@ -553,7 +515,7 @@ const ReceiptModal = ({ order, onClose }) => {
             className={`btn fw-bold ${activeTab === "token" ? "btn-info text-white" : "btn-outline-info text-dark"}`}
             onClick={() => setActiveTab("token")}
           >
-            🎟️ Customer Token
+            🎟️ Order Number
           </button>
           <button
             type="button"
@@ -586,9 +548,9 @@ const ReceiptModal = ({ order, onClose }) => {
                 setTimeout(() => setIsPrinting(false), 2500);
               }
             }}
-            title="Print Customer Bill and separate Token Slip"
+            title="Print Customer Bill and separate Order Number Slip"
           >
-            🖨️ {isPrinting ? "Printing..." : "Bill + Token"}
+            🖨️ {isPrinting ? "Printing..." : "Bill + Order No"}
           </button>
           <button
             className="btn btn-outline-success btn-sm px-3"
@@ -620,7 +582,7 @@ const ReceiptModal = ({ order, onClose }) => {
               }
             }}
           >
-            🎟️ Token Only
+            🎟️ Order No Only
           </button>
           <button
             className="btn btn-warning btn-sm px-3 fw-bold text-dark"
@@ -702,7 +664,7 @@ const ReceiptModal = ({ order, onClose }) => {
             <hr style={{ margin: "8px 0" }}/>
 
             <div className="text-center fw-bold py-1 mb-2" style={{ fontSize: "17px", border: "1px dashed #000" }}>
-              DAILY TOKEN #: #{dailyNo}
+              DAILY ORDER #: #{dailyNo}
             </div>
 
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px", margin: "6px 0" }}>
@@ -836,78 +798,38 @@ const ReceiptModal = ({ order, onClose }) => {
             )}
           </>
         ) : activeTab === "token" ? (
-          /* =================== CUSTOMER TOKEN VIEW =================== */
-          <>
-            <div className="text-center mb-2">
-              {logoSrc ? (
-                <img
-                  src={logoSrc}
-                  alt="Logo"
-                  style={{
-                    maxWidth: '180px',
-                    maxHeight: '80px',
-                    width: 'auto',
-                    height: 'auto',
-                    display: 'inline-block',
-                    objectFit: 'contain'
-                  }}
-                />
-              ) : null}
+          /* =================== ORDER NUMBER VIEW =================== */
+          <div className="py-4 text-center">
+            <div
+              className="text-center fw-bold py-4 px-3 mx-auto bg-light text-dark shadow-sm"
+              style={{
+                maxWidth: "280px",
+                border: "3px solid #000",
+                borderRadius: "6px"
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "18px",
+                  fontWeight: "800",
+                  letterSpacing: "2px",
+                  textTransform: "uppercase",
+                  marginBottom: "8px"
+                }}
+              >
+                ORDER NUMBER
+              </div>
+              <div
+                style={{
+                  fontSize: "52px",
+                  fontWeight: "900",
+                  lineHeight: "1.1"
+                }}
+              >
+                #{dailyNo}
+              </div>
             </div>
-            <h3 className="mb-1 fs-5 text-center"><strong>{restaurantDetails.name}</strong></h3>
-            <p className="mb-0 text-center" style={{ fontSize: "13px" }}>{restaurantDetails.address}</p>
-            <p className="mb-2 text-center" style={{ fontSize: "14px" }}><strong>{restaurantDetails.phone}</strong></p>
-            
-            <hr style={{ margin: "8px 0" }}/>
-
-            <div className="text-center fw-bold mb-1 text-muted" style={{ fontSize: "13px", letterSpacing: "1px" }}>
-              *** CUSTOMER ORDER TOKEN ***
-            </div>
-
-            <div className="text-center fw-bold py-2 my-2 bg-light text-dark" style={{ fontSize: "28px", border: "2px solid #000" }}>
-              TOKEN #: #{dailyNo}
-            </div>
-
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px", margin: "6px 0" }}>
-              <tbody>
-                <tr>
-                  <td style={{ width: "90px", fontWeight: "bold", padding: "2px 0" }}>Invoice No:</td>
-                  <td style={{ padding: "2px 0" }}>{order.invoiceNo || 'N/A'}</td>
-                </tr>
-                <tr>
-                  <td style={{ width: "90px", fontWeight: "bold", padding: "2px 0" }}>Date & Time:</td>
-                  <td style={{ padding: "2px 0" }}>{now}</td>
-                </tr>
-                <tr>
-                  <td style={{ width: "90px", fontWeight: "bold", padding: "2px 0" }}>Order Type:</td>
-                  <td style={{ padding: "2px 0", fontWeight: "bold", whiteSpace: "nowrap" }}>{orderTypeStr}</td>
-                </tr>
-                <tr>
-                  <td style={{ width: "90px", fontWeight: "bold", padding: "2px 0" }}>Customer:</td>
-                  <td style={{ padding: "2px 0" }}>{customerName || 'Walk-in'}</td>
-                </tr>
-                {customerPhone && (
-                  <tr>
-                    <td style={{ width: "90px", fontWeight: "bold", padding: "2px 0" }}>Phone:</td>
-                    <td style={{ padding: "2px 0" }}>{customerPhone}</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-
-            <hr style={{ margin: "8px 0" }}/>
-
-            <p className="text-center mb-1 fw-bold" style={{ fontSize: "14px" }}>
-              Please keep this slip to collect your order.
-            </p>
-            <p className="text-center mb-1" style={{ fontSize: "13px" }}>
-              Thank you for dining with us!
-            </p>
-            <p className="text-center mb-0" style={{ fontSize: "11px", color: "#555" }}>
-              Software By: Raxwo (Pvt) Ltd.
-            </p>
-            <hr style={{ margin: "8px 0" }}/>
-          </>
+          </div>
         ) : (
           /* =================== KITCHEN KOT VIEW =================== */
           <>
@@ -916,7 +838,7 @@ const ReceiptModal = ({ order, onClose }) => {
             </div>
 
             <div className="text-center fw-bold py-2 my-2" style={{ fontSize: "24px", border: "2px solid #000" }}>
-              TOKEN #: #{dailyNo}
+              ORDER #: #{dailyNo}
             </div>
 
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px", margin: "6px 0" }}>
